@@ -216,4 +216,35 @@ describe('Post-action entrypoint', () => {
     expect(calls[0]).toEqual(['docker-compose', ['-p', projectName, 'down', '--remove-orphans', '--volumes']]);
     expect(calls[1]).toEqual(['docker-compose', ['-p', projectName, 'rm', '-f']]);
   });
+
+  test('post-action cleanup doens\'t abort on first error', async () => {
+    const projectName = 'test-name';
+    const serviceName = 'test-service';
+    const context: Context = {
+      composeFile: 'docker-compose.ci.yml',
+      serviceName,
+      composeCommand: 'up',
+      composeArguments: ['--custom-arg'],
+      runCommand: [],
+      build: true,
+      push: true,
+      postCommand: ["down --remove-orphans --volumes", "rm -f"],
+      isPost: false,
+      projectName: projectName
+    };
+
+    const mockExec = mocked(exec);
+    const errorText = 'this was an error';
+    mockExec.mockImplementationOnce(async () => { throw new Error(errorText) });
+    mockExec.mockImplementation(async () => { return 0; });
+
+    await expect(runCleanup(context)).rejects.toThrowError(errorText);
+
+    // All cleanup calls are still invoked, even though the first might fail.
+    const calls = mockExec.mock.calls;
+    expect(calls.length).toBe(3);
+    expect(calls[0]).toEqual(['docker-compose', ['-p', projectName, 'push', serviceName]]);
+    expect(calls[1]).toEqual(['docker-compose', ['-p', projectName, 'down', '--remove-orphans', '--volumes']]);
+    expect(calls[2]).toEqual(['docker-compose', ['-p', projectName, 'rm', '-f']]);
+  });
 });

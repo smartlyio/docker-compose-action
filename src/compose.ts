@@ -34,12 +34,24 @@ export async function runAction(context: Context): Promise<void> {
 }
 
 export async function runCleanup(context: Context): Promise<void> {
-  // FIXME: Don't abort on error here
+  const errors: string[] = [];
   if (context.push) {
-    await runCompose('push', [context.serviceName], context);
+    try {
+      await runCompose('push', [context.serviceName], context);
+    } catch(e) {
+      errors.push(e.message);
+    }
   }
 
   for (const command of context.postCommand) {
-    await runCompose(command, [], context);
+    try {
+      await runCompose(command, [], context);
+    } catch(e) {
+      errors.push(e.message);
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(errors.join('\n'));
   }
 }
