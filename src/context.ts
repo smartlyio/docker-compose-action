@@ -20,23 +20,30 @@ export interface Context {
   isPost: boolean;
 }
 
-function createProjectName(): string {
+export function toBoolean(value: string): boolean {
+  const regexp = new RegExp(/^(true|1|on|yes)$/i);
+  return regexp.test(value.trim());
+}
+
+export function parseArray(value: string): string[] {
+  if (!value.trim()) {
+    return [];
+  }
+  return value.trim().split(/ +/);
+}
+
+export function createProjectName(): string {
   const githubRepository: string = process.env['GITHUB_REPOSITORY'] || '';
   const runId = process.env['GITHUB_RUN_ID'] || '';
   const runNumber = process.env['GITHUB_RUN_NUMBER'] || '';
   if (!githubRepository || !runId || !runNumber) {
-    throw new Error('Unexpectedly missing Github environment variables!')
+    throw new Error('Unexpectedly missing Github context GITHUB_REPOSITORY, GITHUB_RUN_ID, or GITHUB_RUN_NUMBER!')
   }
   const repoName = githubRepository.split('/').join('-');
   return `${repoName}-${runId}-${runNumber}`;
 }
 
-function toBoolean(value: string): boolean {
-  const regexp = new RegExp(/^(true|1|on)$/i);
-  return regexp.test(value.trim());
-}
-
-function parsePushOption(pushOption: string, build: boolean): boolean {
+export function parsePushOption(pushOption: string, build: boolean): boolean {
   if (build && toBoolean(pushOption)) {
     return true;
   }
@@ -44,10 +51,6 @@ function parsePushOption(pushOption: string, build: boolean): boolean {
     return true;
   }
   return false;
-}
-
-function parseArray(value: string): string[] {
-  return value.split(' ');
 }
 
 export async function getContext(): Promise<Context> {
@@ -100,10 +103,3 @@ export async function loadState(): Promise<Context> {
   };
   return context;
 }
-
-/*
-docker-compose -p '<dirname>-<some-id>'
-
-down --remove-orphans --volumes
-rm -f
-*/
