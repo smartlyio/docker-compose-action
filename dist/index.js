@@ -1417,8 +1417,8 @@ function runCompose(command, args, context) {
 exports.runCompose = runCompose;
 function runAction(context) {
     return __awaiter(this, void 0, void 0, function* () {
+        yield runCompose('pull', [context.serviceName], context);
         if (context.build) {
-            yield runCompose('pull', [context.serviceName], context);
             yield runCompose('build', [context.serviceName], context);
         }
         const args = [];
