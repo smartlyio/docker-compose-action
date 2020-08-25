@@ -6,7 +6,7 @@ export async function runCompose(
   args: string[],
   context: Context
 ): Promise<void> {
-  const composeArgs = ['-p', context.projectName];
+  const composeArgs = ['-f', context.composeFile, '-p', context.projectName];
   for (const part of command.trim().split(/\s+/)) {
     composeArgs.push(part);
   }

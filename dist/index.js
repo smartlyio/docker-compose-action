@@ -1404,7 +1404,7 @@ exports.runCleanup = exports.runAction = exports.runCompose = void 0;
 const exec = __importStar(__webpack_require__(514));
 function runCompose(command, args, context) {
     return __awaiter(this, void 0, void 0, function* () {
-        const composeArgs = ['-p', context.projectName];
+        const composeArgs = ['-f', context.composeFile, '-p', context.projectName,];
         for (const part of command.trim().split(/\s+/)) {
             composeArgs.push(part);
         }
