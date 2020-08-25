@@ -222,4 +222,30 @@ describe('get input context', () => {
     const postContext: Context = await loadState();
     expect(postContext).toEqual(expectedContext);
   });
+
+  test('test inputs unexpected composeCommand', async () => {
+    const org = 'smartlyio';
+    const repo = 'docker-compose-action';
+    const runId = 5;
+    const runNumber = 1;
+    process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
+    process.env['GITHUB_RUN_ID'] = `${runId}`;
+    process.env['GITHUB_RUN_NUMBER'] = `${runNumber}`;
+    const projectName = `${org}-${repo}-${runId}-${runNumber}`;
+
+    const inputs: Record<string, string> = {
+      composeFile: 'docker-compose.ci.yml',
+      serviceName: 'test',
+      composeCommand: 'down',
+      composeArguments: '--abort-on-container-exit',
+      runCommand: '',
+      build: 'false',
+      push: 'on:push'
+    };
+    mocked(getInput).mockImplementation((name) => {
+      return inputs[name];
+    });
+
+    await expect(getContext()).rejects.toThrowError(/composeCommand not in/);
+  });
 });

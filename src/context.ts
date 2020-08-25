@@ -29,7 +29,7 @@ export function parseArray(value: string): string[] {
   if (!value.trim()) {
     return [];
   }
-  return value.trim().split(/ +/);
+  return value.trim().split(/\s+/);
 }
 
 export function createProjectName(): string {
@@ -59,10 +59,15 @@ export async function getContext(): Promise<Context> {
   const push: boolean = parsePushOption(pushOption, build);
   const post: boolean = isPost()
 
+  const composeCommand = core.getInput('composeCommand');
+  if (composeCommand !== 'up' && composeCommand !== 'run') {
+    throw new Error('composeCommand not in [up|run]');
+  }
+
   const context: Context = {
     composeFile: core.getInput('composeFile'),
     serviceName: core.getInput('serviceName', { 'required': true }),
-    composeCommand: core.getInput('composeCommand'),
+    composeCommand,
     composeArguments: parseArray(core.getInput('composeArguments')),
     runCommand: parseArray(core.getInput('runCommand')),
     build,
