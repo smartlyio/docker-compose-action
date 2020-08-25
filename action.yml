@@ -1,11 +1,30 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: Docker-Compose Action
+description: Run docker-compose and enforce cleanup after the job finished
+author: Smartly.io
 inputs:
-  milliseconds: # change this
+  composeFile:
+    description: "The path to the docker-compose file to use."
+    default: "docker-compose.yml"
+
+  serviceName:
+    description: "The name of the service to use defined in the compose file"
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+
+  composeCommand:
+    default: "up --abort-on-container-exit"
+
+  runCommand:
+    description: "Command to run in the container with 'docker-compose run'"
+    required: "false"
+
+  build:
+    description: "Explicitly build the service image before running. Implies pull before build."
+    default: "false"
+
+  push:
+    description: "When to push the built image to the registry. 'on:push' means when the trigger event it a push to the branch. Otherwise true/false.  Only runs if 'build' is true"
+    default: "on:push"
+
 runs:
   using: 'node12'
   main: 'dist/index.js'
