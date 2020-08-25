@@ -93,18 +93,21 @@ describe('create project name', () => {
     test('GITHUB_REPOSITORY', () => {
       process.env['GITHUB_RUN_ID'] = '5';
       process.env['GITHUB_RUN_NUMBER'] = '1';
+      delete process.env['GITHUB_REPOSITORY'];
       expect(createProjectName).toThrowError(/Unexpectedly missing/);
     });
 
     test('GITHUB_RUN_ID', () => {
       process.env['GITHUB_REPOSITORY'] = 'smartlyio/docker-compose-action';
       process.env['GITHUB_RUN_NUMBER'] = '1';
+      delete process.env['GITHUB_RUN_ID'];
       expect(createProjectName).toThrowError(/Unexpectedly missing/);
     });
 
     test('GITHUB_RUN_NUMBER', () => {
       process.env['GITHUB_REPOSITORY'] = 'smartlyio/docker-compose-action';
       process.env['GITHUB_RUN_ID'] = '5';
+      delete process.env['GITHUB_RUN_NUMBER'];
       expect(createProjectName).toThrowError(/Unexpectedly missing/);
     });
   });
