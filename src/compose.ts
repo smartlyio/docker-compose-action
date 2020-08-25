@@ -1,11 +1,12 @@
 import * as exec from '@actions/exec';
-import { Context } from './context'
+import {Context} from './context';
 
-export async function runCompose(command: string, args: string[], context: Context): Promise<void> {
-  const composeArgs = [
-    '-p',
-    context.projectName
-  ];
+export async function runCompose(
+  command: string,
+  args: string[],
+  context: Context
+): Promise<void> {
+  const composeArgs = ['-p', context.projectName];
   for (const part of command.trim().split(/\s+/)) {
     composeArgs.push(part);
   }
@@ -38,7 +39,7 @@ export async function runCleanup(context: Context): Promise<void> {
   if (context.push) {
     try {
       await runCompose('push', [context.serviceName], context);
-    } catch(e) {
+    } catch (e) {
       errors.push(e.message);
     }
   }
@@ -46,7 +47,7 @@ export async function runCleanup(context: Context): Promise<void> {
   for (const command of context.postCommand) {
     try {
       await runCompose(command, [], context);
-    } catch(e) {
+    } catch (e) {
       errors.push(e.message);
     }
   }

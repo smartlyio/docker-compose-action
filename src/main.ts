@@ -1,13 +1,13 @@
 import * as core from '@actions/core';
-import { isPost, getContext, loadState, Context } from './context';
-import { runAction, runCleanup } from './compose';
+import {isPost, getContext, loadState, Context} from './context';
+import {runAction, runCleanup} from './compose';
 
 async function run(): Promise<void> {
   try {
-    const context: Context = await getContext()
+    const context: Context = await getContext();
     await runAction(context);
   } catch (error) {
-    core.setFailed(error.message)
+    core.setFailed(error.message);
   }
 }
 
@@ -17,7 +17,7 @@ async function cleanup(): Promise<void> {
 }
 
 if (!isPost()) {
-  run()
+  run();
 } else {
-  cleanup()
+  cleanup();
 }

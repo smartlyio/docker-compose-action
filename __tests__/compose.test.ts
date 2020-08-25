@@ -1,7 +1,7 @@
-import { Context } from '../src/context';
-import { runCompose, runAction, runCleanup } from '../src/compose';
-import { mocked } from 'ts-jest/utils';
-import { exec } from '@actions/exec';
+import {Context} from '../src/context';
+import {runCompose, runAction, runCleanup} from '../src/compose';
+import {mocked} from 'ts-jest/utils';
+import {exec} from '@actions/exec';
 
 jest.mock('@actions/exec', () => ({
   exec: jest.fn()
@@ -9,12 +9,12 @@ jest.mock('@actions/exec', () => ({
 
 const OLD_ENV = process.env;
 beforeEach(() => {
-  process.env = { ...OLD_ENV };
-})
+  process.env = {...OLD_ENV};
+});
 
 afterEach(() => {
   process.env = OLD_ENV;
-})
+});
 
 describe('run docker-compose', () => {
   test('basic command', async () => {
@@ -28,7 +28,7 @@ describe('run docker-compose', () => {
       runCommand: [],
       build: true,
       push: false,
-      postCommand: ["down --remove-orphans --volumes", "rm -f"],
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
       projectName: projectName
     };
@@ -38,12 +38,8 @@ describe('run docker-compose', () => {
     const mockExec = mocked(exec);
     const calls = mockExec.mock.calls;
     expect(calls.length).toBe(1);
-    const expectedArgs: string[] = [
-      '-p',
-      projectName,
-      command
-    ];
-    expect(mockExec).toHaveBeenCalledWith('docker-compose', expectedArgs)
+    const expectedArgs: string[] = ['-p', projectName, command];
+    expect(mockExec).toHaveBeenCalledWith('docker-compose', expectedArgs);
   });
 
   test('whitespace separate commands and args', async () => {
@@ -57,7 +53,7 @@ describe('run docker-compose', () => {
       runCommand: [],
       build: true,
       push: false,
-      postCommand: [command, "rm -f"],
+      postCommand: [command, 'rm -f'],
       isPost: false,
       projectName: projectName
     };
@@ -72,7 +68,7 @@ describe('run docker-compose', () => {
       '--remove-orphans',
       '--volumes'
     ];
-    expect(mockExec).toHaveBeenCalledWith('docker-compose', expectedArgs)
+    expect(mockExec).toHaveBeenCalledWith('docker-compose', expectedArgs);
   });
 
   test('separate command and args', async () => {
@@ -87,7 +83,7 @@ describe('run docker-compose', () => {
       runCommand: [],
       build: true,
       push: false,
-      postCommand: [command, "rm -f"],
+      postCommand: [command, 'rm -f'],
       isPost: false,
       projectName: projectName
     };
@@ -102,10 +98,9 @@ describe('run docker-compose', () => {
       '--remove-orphans',
       '--volumes'
     ];
-    expect(mockExec).toHaveBeenCalledWith('docker-compose', expectedArgs)
+    expect(mockExec).toHaveBeenCalledWith('docker-compose', expectedArgs);
   });
 });
-
 
 describe('Main action entrypoint', () => {
   test('run action with build', async () => {
@@ -119,7 +114,7 @@ describe('Main action entrypoint', () => {
       runCommand: ['ignored'],
       build: true,
       push: false,
-      postCommand: ["down --remove-orphans --volumes", "rm -f"],
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
       projectName: projectName
     };
@@ -130,9 +125,18 @@ describe('Main action entrypoint', () => {
 
     const calls = mockExec.mock.calls;
     expect(calls.length).toBe(3);
-    expect(calls[0]).toEqual(['docker-compose', ['-p', projectName, 'pull', serviceName]]);
-    expect(calls[1]).toEqual(['docker-compose', ['-p', projectName, 'build', serviceName]]);
-    expect(calls[2]).toEqual(['docker-compose', ['-p', projectName, 'up', '--abort-on-container-exit', serviceName]]);
+    expect(calls[0]).toEqual([
+      'docker-compose',
+      ['-p', projectName, 'pull', serviceName]
+    ]);
+    expect(calls[1]).toEqual([
+      'docker-compose',
+      ['-p', projectName, 'build', serviceName]
+    ]);
+    expect(calls[2]).toEqual([
+      'docker-compose',
+      ['-p', projectName, 'up', '--abort-on-container-exit', serviceName]
+    ]);
   });
 
   test('run action with compose run', async () => {
@@ -147,7 +151,7 @@ describe('Main action entrypoint', () => {
       runCommand,
       build: false,
       push: false,
-      postCommand: ["down --remove-orphans --volumes", "rm -f"],
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
       projectName: projectName
     };
@@ -158,7 +162,15 @@ describe('Main action entrypoint', () => {
 
     const calls = mockExec.mock.calls;
     expect(calls.length).toBe(1);
-    const expectedArgs = ['-p', projectName, 'run', '--custom-arg', serviceName, runCommand[0], runCommand[1]];
+    const expectedArgs = [
+      '-p',
+      projectName,
+      'run',
+      '--custom-arg',
+      serviceName,
+      runCommand[0],
+      runCommand[1]
+    ];
     expect(mockExec).toHaveBeenCalledWith('docker-compose', expectedArgs);
   });
 });
@@ -175,7 +187,7 @@ describe('Post-action entrypoint', () => {
       runCommand: [],
       build: true,
       push: true,
-      postCommand: ["down --remove-orphans --volumes", "rm -f"],
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
       projectName: projectName
     };
@@ -186,9 +198,18 @@ describe('Post-action entrypoint', () => {
 
     const calls = mockExec.mock.calls;
     expect(calls.length).toBe(3);
-    expect(calls[0]).toEqual(['docker-compose', ['-p', projectName, 'push', serviceName]]);
-    expect(calls[1]).toEqual(['docker-compose', ['-p', projectName, 'down', '--remove-orphans', '--volumes']]);
-    expect(calls[2]).toEqual(['docker-compose', ['-p', projectName, 'rm', '-f']]);
+    expect(calls[0]).toEqual([
+      'docker-compose',
+      ['-p', projectName, 'push', serviceName]
+    ]);
+    expect(calls[1]).toEqual([
+      'docker-compose',
+      ['-p', projectName, 'down', '--remove-orphans', '--volumes']
+    ]);
+    expect(calls[2]).toEqual([
+      'docker-compose',
+      ['-p', projectName, 'rm', '-f']
+    ]);
   });
 
   test('run action without push', async () => {
@@ -202,7 +223,7 @@ describe('Post-action entrypoint', () => {
       runCommand: [],
       build: true,
       push: false,
-      postCommand: ["down --remove-orphans --volumes", "rm -f"],
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
       projectName: projectName
     };
@@ -213,11 +234,17 @@ describe('Post-action entrypoint', () => {
 
     const calls = mockExec.mock.calls;
     expect(calls.length).toBe(2);
-    expect(calls[0]).toEqual(['docker-compose', ['-p', projectName, 'down', '--remove-orphans', '--volumes']]);
-    expect(calls[1]).toEqual(['docker-compose', ['-p', projectName, 'rm', '-f']]);
+    expect(calls[0]).toEqual([
+      'docker-compose',
+      ['-p', projectName, 'down', '--remove-orphans', '--volumes']
+    ]);
+    expect(calls[1]).toEqual([
+      'docker-compose',
+      ['-p', projectName, 'rm', '-f']
+    ]);
   });
 
-  test('post-action cleanup doens\'t abort on first error', async () => {
+  test("post-action cleanup doens't abort on first error", async () => {
     const projectName = 'test-name';
     const serviceName = 'test-service';
     const context: Context = {
@@ -228,23 +255,36 @@ describe('Post-action entrypoint', () => {
       runCommand: [],
       build: true,
       push: true,
-      postCommand: ["down --remove-orphans --volumes", "rm -f"],
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
       projectName: projectName
     };
 
     const mockExec = mocked(exec);
     const errorText = 'this was an error';
-    mockExec.mockImplementationOnce(async () => { throw new Error(errorText) });
-    mockExec.mockImplementation(async () => { return 0; });
+    mockExec.mockImplementationOnce(async () => {
+      throw new Error(errorText);
+    });
+    mockExec.mockImplementation(async () => {
+      return 0;
+    });
 
     await expect(runCleanup(context)).rejects.toThrowError(errorText);
 
     // All cleanup calls are still invoked, even though the first might fail.
     const calls = mockExec.mock.calls;
     expect(calls.length).toBe(3);
-    expect(calls[0]).toEqual(['docker-compose', ['-p', projectName, 'push', serviceName]]);
-    expect(calls[1]).toEqual(['docker-compose', ['-p', projectName, 'down', '--remove-orphans', '--volumes']]);
-    expect(calls[2]).toEqual(['docker-compose', ['-p', projectName, 'rm', '-f']]);
+    expect(calls[0]).toEqual([
+      'docker-compose',
+      ['-p', projectName, 'push', serviceName]
+    ]);
+    expect(calls[1]).toEqual([
+      'docker-compose',
+      ['-p', projectName, 'down', '--remove-orphans', '--volumes']
+    ]);
+    expect(calls[2]).toEqual([
+      'docker-compose',
+      ['-p', projectName, 'rm', '-f']
+    ]);
   });
 });

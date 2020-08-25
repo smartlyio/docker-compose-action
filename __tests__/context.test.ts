@@ -8,8 +8,8 @@ import {
   getContext,
   loadState
 } from '../src/context';
-import { mocked } from 'ts-jest/utils';
-import { getInput, saveState, getState } from '@actions/core';
+import {mocked} from 'ts-jest/utils';
+import {getInput, saveState, getState} from '@actions/core';
 
 jest.mock('@actions/core', () => ({
   getInput: jest.fn(),
@@ -19,12 +19,12 @@ jest.mock('@actions/core', () => ({
 
 const OLD_ENV = process.env;
 beforeEach(() => {
-  process.env = { ...OLD_ENV };
-})
+  process.env = {...OLD_ENV};
+});
 
 afterEach(() => {
   process.env = OLD_ENV;
-})
+});
 
 describe('isPost', () => {
   test('is true if env var is present', () => {
@@ -190,17 +190,17 @@ describe('get input context', () => {
       push: 'on:push'
     };
     const savedState: Record<string, string> = {};
-    mocked(getInput).mockImplementation((name) => {
+    mocked(getInput).mockImplementation(name => {
       return inputs[name];
     });
     mocked(saveState).mockImplementation((name, value) => {
       if (typeof value === 'string') {
         savedState[name] = value;
       } else {
-        savedState[name] = JSON.stringify(value)
+        savedState[name] = JSON.stringify(value);
       }
     });
-    mocked(getState).mockImplementation((name) => {
+    mocked(getState).mockImplementation(name => {
       return savedState[name];
     });
 
@@ -212,7 +212,7 @@ describe('get input context', () => {
       runCommand: [],
       build: false,
       push: false,
-      postCommand: ["down --remove-orphans --volumes", "rm -f"],
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
       projectName
     };
@@ -242,7 +242,7 @@ describe('get input context', () => {
       build: 'false',
       push: 'on:push'
     };
-    mocked(getInput).mockImplementation((name) => {
+    mocked(getInput).mockImplementation(name => {
       return inputs[name];
     });
 
