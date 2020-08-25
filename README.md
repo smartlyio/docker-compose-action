@@ -28,13 +28,13 @@ Uses the following github context environment variables to generate unique docke
 
 ## Implementation
 
-1. If `build` is `true`:
-   - Run `docker-compose -p <project> pull <service>`
+1. Run `docker-compose -p <project> pull <service>`
+2. If `build` is `true`:
    - Run `docker-compose -p <project> build <service>`
-2. Run the main command:
+3. Run the main command:
    - For `up` command, run `docker-compose -p <project> up <args> <service>`
    - For `run` command, run `docker-compose -p <project> run <args> <service> <run-command>`
-3. As a post-build step, do cleanup:
+4. As a post-build step, do cleanup:
    1. If `build` is `true` and `push` resolves to `true`:
       - Run `docker-compose -p <project> push <service>`
       - Ignore failures of this command to continue with cleanup

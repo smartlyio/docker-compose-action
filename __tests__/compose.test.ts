@@ -161,7 +161,7 @@ describe('Main action entrypoint', () => {
     const mockExec = mocked(exec);
 
     const calls = mockExec.mock.calls;
-    expect(calls.length).toBe(1);
+    expect(calls.length).toBe(2);
     const expectedArgs = [
       '-p',
       projectName,
@@ -171,7 +171,11 @@ describe('Main action entrypoint', () => {
       runCommand[0],
       runCommand[1]
     ];
-    expect(mockExec).toHaveBeenCalledWith('docker-compose', expectedArgs);
+    expect(calls[0]).toEqual([
+      'docker-compose',
+      ['-p', projectName, 'pull', serviceName]
+    ]);
+    expect(calls[1]).toEqual(['docker-compose', expectedArgs]);
   });
 });
 

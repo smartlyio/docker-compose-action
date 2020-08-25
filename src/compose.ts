@@ -17,8 +17,8 @@ export async function runCompose(
 }
 
 export async function runAction(context: Context): Promise<void> {
+  await runCompose('pull', [context.serviceName], context);
   if (context.build) {
-    await runCompose('pull', [context.serviceName], context);
     await runCompose('build', [context.serviceName], context);
   }
   const args: string[] = [];
