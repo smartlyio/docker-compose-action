@@ -16,7 +16,7 @@ async function cleanup(): Promise<void> {
   await runCleanup(context);
 }
 
-if (!isPost) {
+if (!isPost()) {
   run()
 } else {
   cleanup()

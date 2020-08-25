@@ -11,11 +11,19 @@ inputs:
     required: true
 
   composeCommand:
-    default: "up --abort-on-container-exit"
+    description: "up | run"
+    default: "up"
+    required: false
+
+  composeArguments:
+    description: "Option flags passed to the compose command"
+    default: "--abort-on-container-exit"
+    required: false
 
   runCommand:
-    description: "Command to run in the container with 'docker-compose run'"
-    required: "false"
+    description: "Command to run in the container when composeCommand is 'run'"
+    default: ""
+    required: false
 
   build:
     description: "Explicitly build the service image before running. Implies pull before build."
