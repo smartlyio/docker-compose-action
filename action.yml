@@ -3,35 +3,38 @@ description: Run docker-compose and enforce cleanup after the job finished
 author: Smartly.io
 inputs:
   composeFile:
-    description: "The path to the docker-compose file to use."
+    description: "The path to the docker-compose file to use, realtive to the workspace."
     default: "docker-compose.yml"
+    required: false
 
   serviceName:
-    description: "The name of the service to use defined in the compose file"
+    description: "The name of the service to use defined in the compose file."
     required: true
 
   composeCommand:
-    description: "up | run"
+    description: "One of `up` or `run` as the main compose command to execute."
     default: "up"
     required: false
 
   composeArguments:
-    description: "Option flags passed to the compose command"
+    description: "Option flags passed to the compose command."
     default: "--abort-on-container-exit"
     required: false
 
   runCommand:
-    description: "Command to run in the container when composeCommand is 'run'"
+    description: "Command to run in the container when composeCommand is 'run'; ignored otherwise."
     default: ""
     required: false
 
   build:
     description: "Explicitly build the service image before running. Implies pull before build."
     default: "false"
+    required: false
 
   push:
-    description: "When to push the built image to the registry. 'on:push' means when the trigger event it a push to the branch. Otherwise true/false.  Only runs if 'build' is true"
+    description: "When to push the built image to the registry. 'on:push' means when the trigger event it a push to the branch. Otherwise true/false.  Only runs if 'build' is true."
     default: "on:push"
+    required: false
 
 runs:
   using: 'node12'
