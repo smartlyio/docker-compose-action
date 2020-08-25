@@ -4,7 +4,7 @@ import { runAction, runCleanup } from './compose';
 
 async function run(): Promise<void> {
   try {
-    const context: Context = getContext()
+    const context: Context = await getContext()
     await runAction(context);
   } catch (error) {
     core.setFailed(error.message)
@@ -12,7 +12,7 @@ async function run(): Promise<void> {
 }
 
 async function cleanup(): Promise<void> {
-  const context: Context = loadState();
+  const context: Context = await loadState();
   await runCleanup(context);
 }
 
