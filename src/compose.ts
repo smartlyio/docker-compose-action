@@ -51,7 +51,7 @@ export async function runAction(context: Context): Promise<string | null> {
     );
     return null;
   }
-  return stdout;
+  return stdout.trim();
 }
 
 export async function runCleanup(context: Context): Promise<void> {

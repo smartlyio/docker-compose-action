@@ -146,7 +146,7 @@ describe('Main action entrypoint', () => {
     mockExec.mockImplementation(
       async (cmd, args, options): Promise<number> => {
         if (options && options.listeners && options.listeners.stdout) {
-          options.listeners.stdout(new Buffer(containerId));
+          options.listeners.stdout(new Buffer(`${containerId}\n`));
         }
         return 0;
       }
