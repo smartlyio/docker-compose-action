@@ -1,4 +1,4 @@
-name: Docker-Compose Action
+name: docker-compose-action
 description: Run docker-compose and enforce cleanup after the job finished
 author: Smartly.io
 inputs:
