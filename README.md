@@ -25,6 +25,10 @@ Uses the following github context environment variables to generate unique docke
 | build | false | no | Explicitly build the service image before running. Implies pull before build. |
 | push | on:push | no | When to push the built image to the registry. 'on:push' means when the trigger event it a push to the branch. Otherwise true/false.  Only runs if 'build' is true. |
 
+## Outputs
+| Name   | description  |
+|--------|--------------|
+| container_id | The docker ID of the service container run. |
 
 ## Implementation
 
