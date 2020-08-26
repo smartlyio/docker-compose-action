@@ -97,7 +97,10 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const context = yield context_1.getContext();
-            yield compose_1.runAction(context);
+            const containerId = yield compose_1.runAction(context);
+            if (containerId) {
+                core.setOutput('container_id', containerId);
+            }
         }
         catch (error) {
             core.setFailed(error.message);
@@ -1401,8 +1404,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.runCleanup = exports.runAction = exports.runCompose = void 0;
+const core = __importStar(__webpack_require__(186));
 const exec = __importStar(__webpack_require__(514));
-function runCompose(command, args, context) {
+function runCompose(command, args, context, execOptions) {
     return __awaiter(this, void 0, void 0, function* () {
         const composeArgs = ['-f', context.composeFile, '-p', context.projectName];
         for (const part of command.trim().split(/\s+/)) {
@@ -1411,7 +1415,7 @@ function runCompose(command, args, context) {
         for (const part of args) {
             composeArgs.push(part);
         }
-        yield exec.exec('docker-compose', composeArgs);
+        yield exec.exec('docker-compose', composeArgs, execOptions);
     });
 }
 exports.runCompose = runCompose;
@@ -1432,6 +1436,22 @@ function runAction(context) {
             }
         }
         yield runCompose(context.composeCommand, args, context);
+        let stdout = '';
+        const options = {
+            listeners: {
+                stdout: (data) => {
+                    stdout += data.toString();
+                }
+            }
+        };
+        try {
+            yield runCompose('ps', ['-q', context.serviceName], context, options);
+        }
+        catch (e) {
+            core.warning('Error running `docker-compose ps`, not returning a container ID');
+            return null;
+        }
+        return stdout;
     });
 }
 exports.runAction = runAction;

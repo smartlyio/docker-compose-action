@@ -5,7 +5,10 @@ import {runAction, runCleanup} from './compose';
 async function run(): Promise<void> {
   try {
     const context: Context = await getContext();
-    await runAction(context);
+    const containerId: string | null = await runAction(context);
+    if (containerId) {
+      core.setOutput('container_id', containerId);
+    }
   } catch (error) {
     core.setFailed(error.message);
   }
