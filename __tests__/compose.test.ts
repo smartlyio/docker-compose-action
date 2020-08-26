@@ -45,7 +45,7 @@ describe('run docker-compose', () => {
       projectName,
       command
     ];
-    expect(mockExec).toHaveBeenCalledWith('docker-compose', expectedArgs);
+    expect(mockExec).toHaveBeenCalledWith('docker-compose', expectedArgs, undefined);
   });
 
   test('whitespace separate commands and args', async () => {
@@ -76,7 +76,7 @@ describe('run docker-compose', () => {
       '--remove-orphans',
       '--volumes'
     ];
-    expect(mockExec).toHaveBeenCalledWith('docker-compose', expectedArgs);
+    expect(mockExec).toHaveBeenCalledWith('docker-compose', expectedArgs, undefined);
   });
 
   test('separate command and args', async () => {
@@ -108,7 +108,7 @@ describe('run docker-compose', () => {
       '--remove-orphans',
       '--volumes'
     ];
-    expect(mockExec).toHaveBeenCalledWith('docker-compose', expectedArgs);
+    expect(mockExec).toHaveBeenCalledWith('docker-compose', expectedArgs, undefined);
   });
 });
 
@@ -134,14 +134,16 @@ describe('Main action entrypoint', () => {
     const mockExec = mocked(exec);
 
     const calls = mockExec.mock.calls;
-    expect(calls.length).toBe(3);
+    expect(calls.length).toBe(4);
     expect(calls[0]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'pull', serviceName]
+      ['-f', context.composeFile, '-p', projectName, 'pull', serviceName],
+      undefined
     ]);
     expect(calls[1]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'build', serviceName]
+      ['-f', context.composeFile, '-p', projectName, 'build', serviceName],
+      undefined
     ]);
     expect(calls[2]).toEqual([
       'docker-compose',
@@ -153,7 +155,18 @@ describe('Main action entrypoint', () => {
         'up',
         '--abort-on-container-exit',
         serviceName
-      ]
+      ],
+      undefined
+    ]);
+    const expectedOptions = expect.objectContaining({
+      listeners: expect.objectContaining({
+        stdout: expect.anything()
+      })
+    });
+    expect(calls[3]).toEqual([
+      'docker-compose',
+      ['-f', context.composeFile, '-p', projectName, 'ps', '-q', serviceName],
+      expectedOptions
     ]);
   });
 
@@ -179,7 +192,7 @@ describe('Main action entrypoint', () => {
     const mockExec = mocked(exec);
 
     const calls = mockExec.mock.calls;
-    expect(calls.length).toBe(2);
+    expect(calls.length).toBe(3);
     const expectedArgs = [
       '-f',
       context.composeFile,
@@ -193,9 +206,20 @@ describe('Main action entrypoint', () => {
     ];
     expect(calls[0]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'pull', serviceName]
+      ['-f', context.composeFile, '-p', projectName, 'pull', serviceName],
+      undefined
     ]);
-    expect(calls[1]).toEqual(['docker-compose', expectedArgs]);
+    expect(calls[1]).toEqual(['docker-compose', expectedArgs, undefined]);
+    const expectedOptions = expect.objectContaining({
+      listeners: expect.objectContaining({
+        stdout: expect.anything()
+      })
+    });
+    expect(calls[2]).toEqual([
+      'docker-compose',
+      ['-f', context.composeFile, '-p', projectName, 'ps', '-q', serviceName],
+      expectedOptions
+    ]);
   });
 });
 
@@ -224,7 +248,8 @@ describe('Post-action entrypoint', () => {
     expect(calls.length).toBe(3);
     expect(calls[0]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'push', serviceName]
+      ['-f', context.composeFile, '-p', projectName, 'push', serviceName],
+      undefined
     ]);
     expect(calls[1]).toEqual([
       'docker-compose',
@@ -236,11 +261,13 @@ describe('Post-action entrypoint', () => {
         'down',
         '--remove-orphans',
         '--volumes'
-      ]
+      ],
+      undefined
     ]);
     expect(calls[2]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'rm', '-f']
+      ['-f', context.composeFile, '-p', projectName, 'rm', '-f'],
+      undefined
     ]);
   });
 
@@ -276,11 +303,13 @@ describe('Post-action entrypoint', () => {
         'down',
         '--remove-orphans',
         '--volumes'
-      ]
+      ],
+      undefined
     ]);
     expect(calls[1]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'rm', '-f']
+      ['-f', context.composeFile, '-p', projectName, 'rm', '-f'],
+      undefined
     ]);
   });
 
@@ -316,7 +345,8 @@ describe('Post-action entrypoint', () => {
     expect(calls.length).toBe(3);
     expect(calls[0]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'push', serviceName]
+      ['-f', context.composeFile, '-p', projectName, 'push', serviceName],
+      undefined
     ]);
     expect(calls[1]).toEqual([
       'docker-compose',
@@ -328,11 +358,13 @@ describe('Post-action entrypoint', () => {
         'down',
         '--remove-orphans',
         '--volumes'
-      ]
+      ],
+      undefined
     ]);
     expect(calls[2]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'rm', '-f']
+      ['-f', context.composeFile, '-p', projectName, 'rm', '-f'],
+      undefined
     ]);
   });
 });

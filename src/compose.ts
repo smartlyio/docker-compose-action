@@ -1,10 +1,12 @@
+import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import {Context} from './context';
 
 export async function runCompose(
   command: string,
   args: string[],
-  context: Context
+  context: Context,
+  execOptions?: exec.ExecOptions
 ): Promise<void> {
   const composeArgs = ['-f', context.composeFile, '-p', context.projectName];
   for (const part of command.trim().split(/\s+/)) {
@@ -13,10 +15,10 @@ export async function runCompose(
   for (const part of args) {
     composeArgs.push(part);
   }
-  await exec.exec('docker-compose', composeArgs);
+  await exec.exec('docker-compose', composeArgs, execOptions);
 }
 
-export async function runAction(context: Context): Promise<void> {
+export async function runAction(context: Context): Promise<string | null> {
   await runCompose('pull', [context.serviceName], context);
   if (context.build) {
     await runCompose('build', [context.serviceName], context);
@@ -32,6 +34,22 @@ export async function runAction(context: Context): Promise<void> {
     }
   }
   await runCompose(context.composeCommand, args, context);
+
+  let stdout = '';
+  const options: exec.ExecOptions = {
+    listeners: {
+      stdout: (data: Buffer) => {
+        stdout += data.toString();
+      }
+    }
+  };
+  try {
+    await runCompose('ps', ['-q', context.serviceName], context, options);
+  } catch(e) {
+    core.warning('Error running `docker-compose ps`, not returning a container ID');
+    return null;
+  }
+  return stdout;
 }
 
 export async function runCleanup(context: Context): Promise<void> {
