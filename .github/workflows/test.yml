@@ -16,6 +16,10 @@ jobs:
     - run: |
         npm install
         npm run all
+        # Error if there are changes after the build
+        if [ "$(git status --porcelain | wc -c)" -gt "0" ]; then
+            exit 1
+        fi
     - run: npm run test
   test: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
