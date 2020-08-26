@@ -13,10 +13,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - run: |
+    - name: "Install"
+      run: |
         npm install
+    - name: "Run build"
+      run: |
         npm run all
-    - run: npm run test
+    - name: "Run tests"
+      run: |
+        npm run test
+    - name: "Verify artefacts are up to date in the repository"
+      run: |
+        # Error if there are changes after the build
+        if [ "$(git status --porcelain | wc -c)" -gt "0" ]; then
+            echo "Built artefacts (dist/*) were not updated by the pull request."
+            echo "Run `npm run-script package` and commit the changes."
+            exit 1
+        fi
   test: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
     steps:
