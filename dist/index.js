@@ -1451,7 +1451,7 @@ function runAction(context) {
             core.warning('Error running `docker-compose ps`, not returning a container ID');
             return null;
         }
-        return stdout;
+        return stdout.trim();
     });
 }
 exports.runAction = runAction;
