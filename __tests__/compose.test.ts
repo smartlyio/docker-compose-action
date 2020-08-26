@@ -45,7 +45,11 @@ describe('run docker-compose', () => {
       projectName,
       command
     ];
-    expect(mockExec).toHaveBeenCalledWith('docker-compose', expectedArgs, undefined);
+    expect(mockExec).toHaveBeenCalledWith(
+      'docker-compose',
+      expectedArgs,
+      undefined
+    );
   });
 
   test('whitespace separate commands and args', async () => {
@@ -76,7 +80,11 @@ describe('run docker-compose', () => {
       '--remove-orphans',
       '--volumes'
     ];
-    expect(mockExec).toHaveBeenCalledWith('docker-compose', expectedArgs, undefined);
+    expect(mockExec).toHaveBeenCalledWith(
+      'docker-compose',
+      expectedArgs,
+      undefined
+    );
   });
 
   test('separate command and args', async () => {
@@ -108,7 +116,11 @@ describe('run docker-compose', () => {
       '--remove-orphans',
       '--volumes'
     ];
-    expect(mockExec).toHaveBeenCalledWith('docker-compose', expectedArgs, undefined);
+    expect(mockExec).toHaveBeenCalledWith(
+      'docker-compose',
+      expectedArgs,
+      undefined
+    );
   });
 });
 
@@ -131,12 +143,14 @@ describe('Main action entrypoint', () => {
     const containerId = 'abc123';
 
     const mockExec = mocked(exec);
-    mockExec.mockImplementation(async (cmd, args, options): Promise<number> => {
-      if (options && options.listeners && options.listeners.stdout) {
-        options.listeners.stdout(new Buffer(containerId));
+    mockExec.mockImplementation(
+      async (cmd, args, options): Promise<number> => {
+        if (options && options.listeners && options.listeners.stdout) {
+          options.listeners.stdout(new Buffer(containerId));
+        }
+        return 0;
       }
-      return 0;
-    });
+    );
 
     const output = await runAction(context);
 
@@ -197,12 +211,14 @@ describe('Main action entrypoint', () => {
     };
 
     const mockExec = mocked(exec);
-    mockExec.mockImplementation(async (cmd, args, options): Promise<number> => {
-      if (options && options.listeners && options.listeners.stdout) {
-        throw new Error('Container doesn\'t exist?');
+    mockExec.mockImplementation(
+      async (cmd, args, options): Promise<number> => {
+        if (options && options.listeners && options.listeners.stdout) {
+          throw new Error("Container doesn't exist?");
+        }
+        return 0;
       }
-      return 0;
-    });
+    );
 
     const output = await runAction(context);
     expect(output).toBe(null);

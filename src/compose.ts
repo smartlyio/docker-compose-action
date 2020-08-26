@@ -45,8 +45,10 @@ export async function runAction(context: Context): Promise<string | null> {
   };
   try {
     await runCompose('ps', ['-q', context.serviceName], context, options);
-  } catch(e) {
-    core.warning('Error running `docker-compose ps`, not returning a container ID');
+  } catch (e) {
+    core.warning(
+      'Error running `docker-compose ps`, not returning a container ID'
+    );
     return null;
   }
   return stdout;
