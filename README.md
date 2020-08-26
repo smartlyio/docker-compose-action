@@ -1,20 +1,75 @@
-<p align="center">
-  <a href="https://github.com/actions/typescript-action/actions"><img alt="typescript-action status" src="https://github.com/actions/typescript-action/workflows/build-test/badge.svg"></a>
-</p>
+# Docker Compose Action
 
-# Create a JavaScript Action using TypeScript
+This action provides support for running docker compose with enforced cleanup after the job finished.
 
-Use this template to bootstrap the creation of a TypeScript action.:rocket:
+## Requirements
 
-This template includes compilation support, tests, a validation workflow, publishing, and versioning guidance.  
+Requires `docker-compose` to be installed and available on the `PATH`.
 
-If you are new, there's also a simpler introduction.  See the [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
+## Environment variables
 
-## Create an action from this template
+Uses the following github context environment variables to generate unique docker-compose project names:
+- `GITHUB_REPOSITORY`
+- `GITHUB_RUN_ID`
+- `GITHUB_RUN_NUMBER`
 
-Click the `Use this Template` and provide the new repo details for your action
+## Inputs
 
-## Code in Main
+| Name     | default  | required | description |
+|----------|----------|----------|-------------|
+| composeFile | `docker-compose.yml` | no | The path to the docker-compose file to use, realtive to the workspace. |
+| serviceName | | yes | The name of the service to use defined in the compose file. |
+| composeCommand | `up` | no | One of `up` or `run` as the main compose command to execute. |
+| composeArguments | `--abort-on-container-exit` | no | Option flags passed to the compose command. |
+| runCommand | | no | Command to run in the container when composeCommand is 'run'; ignored otherwise. |
+| build | false | no | Explicitly build the service image before running. Implies pull before build. |
+| push | on:push | no | When to push the built image to the registry. 'on:push' means when the trigger event it a push to the branch. Otherwise true/false.  Only runs if 'build' is true. |
+
+
+## Implementation
+
+1. Run `docker-compose -p <project> pull <service>`
+2. If `build` is `true`:
+   - Run `docker-compose -p <project> build <service>`
+3. Run the main command:
+   - For `up` command, run `docker-compose -p <project> up <args> <service>`
+   - For `run` command, run `docker-compose -p <project> run <args> <service> <run-command>`
+4. As a post-build step, do cleanup:
+   1. If `build` is `true` and `push` resolves to `true`:
+      - Run `docker-compose -p <project> push <service>`
+      - Ignore failures of this command to continue with cleanup
+   2. Run `docker-compose -p <project> down --remove-orphans --volumes`
+      - Ignore failures of this command to continue with cleanup
+   3. Run `docker-compose -p <project> rm -f`
+      - Ignore failures of this command to continue with cleanup
+   4. If any errors were encountered during cleanup, fail the build.
+
+
+## Example usage
+
+```yaml
+name: Test with compose
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test with docker-compose
+        uses: smartlyio/docker-compose-action@v1
+        with:
+          composeFile: docker-compose.ci.yml
+          serviceName: test
+          build: true
+          push: "on:push"
+```
+
+## Development
 
 Install the dependencies  
 ```bash
@@ -30,72 +85,8 @@ Run the tests :heavy_check_mark:
 ```bash
 $ npm test
 
- PASS  ./index.test.js
-  ✓ throws invalid number (3ms)
-  ✓ wait 500 ms (504ms)
-  ✓ test runs (95ms)
+ PASS  ./compose.test.js
+  ✓ ...
 
 ...
 ```
-
-## Change action.yml
-
-The action.yml contains defines the inputs and output for your action.
-
-Update the action.yml with your name, description, inputs and outputs for your action.
-
-See the [documentation](https://help.github.com/en/articles/metadata-syntax-for-github-actions)
-
-## Change the Code
-
-Most toolkit and CI/CD operations involve async operations so the action is run in an async function.
-
-```javascript
-import * as core from '@actions/core';
-...
-
-async function run() {
-  try { 
-      ...
-  } 
-  catch (error) {
-    core.setFailed(error.message);
-  }
-}
-
-run()
-```
-
-See the [toolkit documentation](https://github.com/actions/toolkit/blob/master/README.md#packages) for the various packages.
-
-## Publish to a distribution branch
-
-Actions are run from GitHub repos so we will checkin the packed dist folder. 
-
-Then run [ncc](https://github.com/zeit/ncc) and push the results:
-```bash
-$ npm run package
-$ git add dist
-$ git commit -a -m "prod dependencies"
-$ git push origin releases/v1
-```
-
-Your action is now published! :rocket: 
-
-See the [versioning documentation](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-
-## Validate
-
-You can now validate the action by referencing `./` in a workflow in your repo (see [test.yml](.github/workflows/test.yml))
-
-```yaml
-uses: ./
-with:
-  milliseconds: 1000
-```
-
-See the [actions tab](https://github.com/actions/typescript-action/actions) for runs of this action! :rocket:
-
-## Usage:
-
-After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and latest V1 action
