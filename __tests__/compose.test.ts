@@ -128,10 +128,19 @@ describe('Main action entrypoint', () => {
       isPost: false,
       projectName: projectName
     };
-
-    await runAction(context);
+    const containerId = 'abc123';
 
     const mockExec = mocked(exec);
+    mockExec.mockImplementation(async (cmd, args, options): Promise<number> => {
+      if (options && options.listeners && options.listeners.stdout) {
+        options.listeners.stdout(new Buffer(containerId));
+      }
+      return 0;
+    });
+
+    const output = await runAction(context);
+
+    expect(output).toEqual(containerId);
 
     const calls = mockExec.mock.calls;
     expect(calls.length).toBe(4);
@@ -187,9 +196,16 @@ describe('Main action entrypoint', () => {
       projectName: projectName
     };
 
-    await runAction(context);
-
     const mockExec = mocked(exec);
+    mockExec.mockImplementation(async (cmd, args, options): Promise<number> => {
+      if (options && options.listeners && options.listeners.stdout) {
+        throw new Error('Container doesn\'t exist?');
+      }
+      return 0;
+    });
+
+    const output = await runAction(context);
+    expect(output).toBe(null);
 
     const calls = mockExec.mock.calls;
     expect(calls.length).toBe(3);
