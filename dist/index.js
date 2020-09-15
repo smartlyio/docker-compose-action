@@ -103,6 +103,9 @@ function run() {
             }
         }
         catch (error) {
+            if (error instanceof compose_1.ComposeError && error.containerId) {
+                core.setOutput('container_id', error.containerId);
+            }
             core.setFailed(error.message);
         }
     });
@@ -1403,9 +1406,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.runCleanup = exports.runAction = exports.runCompose = void 0;
+exports.runCleanup = exports.runAction = exports.getContainerId = exports.runCompose = exports.ComposeError = void 0;
 const core = __importStar(__webpack_require__(186));
 const exec = __importStar(__webpack_require__(514));
+class ComposeError extends Error {
+    constructor(message, containerId) {
+        super(message);
+        this.containerId = containerId;
+    }
+}
+exports.ComposeError = ComposeError;
 function runCompose(command, args, context, execOptions) {
     return __awaiter(this, void 0, void 0, function* () {
         const composeArgs = ['-f', context.composeFile, '-p', context.projectName];
@@ -1419,23 +1429,8 @@ function runCompose(command, args, context, execOptions) {
     });
 }
 exports.runCompose = runCompose;
-function runAction(context) {
+function getContainerId(context) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield runCompose('pull', [context.serviceName], context);
-        if (context.build) {
-            yield runCompose('build', [context.serviceName], context);
-        }
-        const args = [];
-        for (const part of context.composeArguments) {
-            args.push(part);
-        }
-        args.push(context.serviceName);
-        if (context.composeCommand === 'run') {
-            for (const part of context.runCommand) {
-                args.push(part);
-            }
-        }
-        yield runCompose(context.composeCommand, args, context);
         let stdout = '';
         const options = {
             listeners: {
@@ -1452,6 +1447,34 @@ function runAction(context) {
             return null;
         }
         return stdout.trim();
+    });
+}
+exports.getContainerId = getContainerId;
+function runAction(context) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield runCompose('pull', [context.serviceName], context);
+        if (context.build) {
+            yield runCompose('build', [context.serviceName], context);
+        }
+        const args = [];
+        for (const part of context.composeArguments) {
+            args.push(part);
+        }
+        args.push(context.serviceName);
+        if (context.composeCommand === 'run') {
+            for (const part of context.runCommand) {
+                args.push(part);
+            }
+        }
+        try {
+            yield runCompose(context.composeCommand, args, context);
+        }
+        catch (e) {
+            const containerId = yield getContainerId(context);
+            throw new ComposeError(e.message, containerId);
+        }
+        const containerId = yield getContainerId(context);
+        return containerId;
     });
 }
 exports.runAction = runAction;
