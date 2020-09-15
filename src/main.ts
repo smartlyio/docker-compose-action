@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import {isPost, getContext, loadState, Context} from './context';
-import {runAction, runCleanup} from './compose';
+import {runAction, runCleanup, ComposeError} from './compose';
 
 async function run(): Promise<void> {
   try {
@@ -10,6 +10,9 @@ async function run(): Promise<void> {
       core.setOutput('container_id', containerId);
     }
   } catch (error) {
+    if (error instanceof ComposeError && error.containerId) {
+      core.setOutput('container_id', error.containerId);
+    }
     core.setFailed(error.message);
   }
 }

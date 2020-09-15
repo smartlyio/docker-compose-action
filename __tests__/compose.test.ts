@@ -1,5 +1,5 @@
 import {Context} from '../src/context';
-import {runCompose, runAction, runCleanup} from '../src/compose';
+import {runCompose, runAction, runCleanup, ComposeError} from '../src/compose';
 import {mocked} from 'ts-jest/utils';
 import {exec} from '@actions/exec';
 
@@ -252,6 +252,49 @@ describe('Main action entrypoint', () => {
       ['-f', context.composeFile, '-p', projectName, 'ps', '-q', serviceName],
       expectedOptions
     ]);
+  });
+
+  test('get containerId after failed compose run', async () => {
+    const projectName = 'test-name';
+    const serviceName = 'test-service';
+    const runCommand = ['bash', './run-my-script.sh'];
+    const context: Context = {
+      composeFile: 'docker-compose.ci.yml',
+      serviceName,
+      composeCommand: 'run',
+      composeArguments: ['--custom-arg'],
+      runCommand,
+      build: false,
+      push: false,
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
+      isPost: false,
+      projectName: projectName
+    };
+
+    const mockExec = mocked(exec);
+    mockExec
+      .mockImplementationOnce(
+        async (cmd, args, options): Promise<number> => {
+          return 0;
+        }
+      )
+      .mockImplementationOnce(
+        async (cmd, args, options): Promise<number> => {
+          throw new Error('Container failed');
+        }
+      )
+      .mockImplementationOnce(
+        async (cmd, args, options): Promise<number> => {
+          if (options && options.listeners && options.listeners.stdout) {
+            options.listeners.stdout(Buffer.from('container-id'));
+          }
+          return 0;
+        }
+      );
+
+    await expect(runAction(context)).rejects.toThrow(
+      new ComposeError('Container failed', 'container-id')
+    );
   });
 });
 

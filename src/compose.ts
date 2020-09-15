@@ -2,6 +2,16 @@ import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import {Context} from './context';
 
+export class ComposeError extends Error {
+  containerId: string | null;
+
+  constructor(message: string, containerId: string | null) {
+    super(message);
+
+    this.containerId = containerId;
+  }
+}
+
 export async function runCompose(
   command: string,
   args: string[],
@@ -18,23 +28,7 @@ export async function runCompose(
   await exec.exec('docker-compose', composeArgs, execOptions);
 }
 
-export async function runAction(context: Context): Promise<string | null> {
-  await runCompose('pull', [context.serviceName], context);
-  if (context.build) {
-    await runCompose('build', [context.serviceName], context);
-  }
-  const args: string[] = [];
-  for (const part of context.composeArguments) {
-    args.push(part);
-  }
-  args.push(context.serviceName);
-  if (context.composeCommand === 'run') {
-    for (const part of context.runCommand) {
-      args.push(part);
-    }
-  }
-  await runCompose(context.composeCommand, args, context);
-
+export async function getContainerId(context: Context): Promise<string | null> {
   let stdout = '';
   const options: exec.ExecOptions = {
     listeners: {
@@ -52,6 +46,32 @@ export async function runAction(context: Context): Promise<string | null> {
     return null;
   }
   return stdout.trim();
+}
+
+export async function runAction(context: Context): Promise<string | null> {
+  await runCompose('pull', [context.serviceName], context);
+  if (context.build) {
+    await runCompose('build', [context.serviceName], context);
+  }
+  const args: string[] = [];
+  for (const part of context.composeArguments) {
+    args.push(part);
+  }
+  args.push(context.serviceName);
+  if (context.composeCommand === 'run') {
+    for (const part of context.runCommand) {
+      args.push(part);
+    }
+  }
+  try {
+    await runCompose(context.composeCommand, args, context);
+  } catch (e) {
+    const containerId = await getContainerId(context);
+    throw new ComposeError(e.message, containerId);
+  }
+
+  const containerId = await getContainerId(context);
+  return containerId;
 }
 
 export async function runCleanup(context: Context): Promise<void> {
