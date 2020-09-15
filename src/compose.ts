@@ -2,8 +2,6 @@ import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import {Context} from './context';
 
-
-
 export class ComposeError extends Error {
   containerId: string | null;
 
@@ -30,7 +28,7 @@ export async function runCompose(
   await exec.exec('docker-compose', composeArgs, execOptions);
 }
 
-export async function getContainerId(context: Context): Promise<string|null> {
+export async function getContainerId(context: Context): Promise<string | null> {
   let stdout = '';
   const options: exec.ExecOptions = {
     listeners: {

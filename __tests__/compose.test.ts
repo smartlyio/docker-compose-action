@@ -292,7 +292,9 @@ describe('Main action entrypoint', () => {
         }
       );
 
-    await expect(runAction(context)).rejects.toThrow(new ComposeError('Container failed', 'container-id'));
+    await expect(runAction(context)).rejects.toThrow(
+      new ComposeError('Container failed', 'container-id')
+    );
   });
 });
 
