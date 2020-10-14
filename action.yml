@@ -8,8 +8,10 @@ inputs:
     required: false
 
   serviceName:
-    description: "The name of the service to use defined in the compose file."
-    required: true
+    description: "The name of the service to use defined in the compose file.  If not given, will run all services."
+    # Empty value will be interpreted as "null"/not-given
+    default: ""
+    required: false
 
   composeCommand:
     description: "One of `up` or `run` as the main compose command to execute."

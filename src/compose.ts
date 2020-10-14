@@ -38,7 +38,7 @@ export async function getContainerId(context: Context): Promise<string | null> {
     }
   };
   try {
-    await runCompose('ps', ['-q', context.serviceName], context, options);
+    await runCompose('ps', ['-q'].concat(serviceNameArgsArray(context)), context, options);
   } catch (e) {
     core.warning(
       'Error running `docker-compose ps`, not returning a container ID'
@@ -48,16 +48,25 @@ export async function getContainerId(context: Context): Promise<string | null> {
   return stdout.trim();
 }
 
-export async function runAction(context: Context): Promise<string | null> {
-  await runCompose('pull', [context.serviceName], context);
-  if (context.build) {
-    await runCompose('build', [context.serviceName], context);
+function serviceNameArgsArray(context: Context): string[] {
+  if (context.serviceName) {
+    return [context.serviceName];
+  } else {
+    return [];
   }
-  const args: string[] = [];
+}
+
+export async function runAction(context: Context): Promise<string | null> {
+  const serviceNameArgs = serviceNameArgsArray(context);
+  await runCompose('pull', serviceNameArgs, context);
+  if (context.build) {
+    await runCompose('build', serviceNameArgs, context);
+  }
+  let args: string[] = [];
   for (const part of context.composeArguments) {
     args.push(part);
   }
-  args.push(context.serviceName);
+  args = args.concat(serviceNameArgs);
   if (context.composeCommand === 'run') {
     for (const part of context.runCommand) {
       args.push(part);
@@ -78,7 +87,7 @@ export async function runCleanup(context: Context): Promise<void> {
   const errors: string[] = [];
   if (context.push) {
     try {
-      await runCompose('push', [context.serviceName], context);
+      await runCompose('push', serviceNameArgsArray(context), context);
     } catch (e) {
       errors.push(e.message);
     }

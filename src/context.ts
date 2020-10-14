@@ -8,7 +8,7 @@ export function isPost(): boolean {
 export interface Context {
   // Action inputs
   composeFile: string;
-  serviceName: string;
+  serviceName: string | null;
   composeCommand: string;
   composeArguments: string[];
   runCommand: string[];
@@ -64,15 +64,20 @@ export async function getContext(): Promise<Context> {
   const pushOption: string = core.getInput('push');
   const push: boolean = parsePushOption(pushOption, build);
   const post: boolean = isPost();
+  const serviceName: string = core.getInput('serviceName');
 
   const composeCommand = core.getInput('composeCommand');
   if (composeCommand !== 'up' && composeCommand !== 'run') {
     throw new Error('composeCommand not in [up|run]');
   }
 
+  if (composeCommand === 'run' && !serviceName) {
+    throw new Error('serviceName must be provided when composeCommand is "run"');
+  }
+
   const context: Context = {
     composeFile: core.getInput('composeFile'),
-    serviceName: core.getInput('serviceName', {required: true}),
+    serviceName: serviceName === '' ? null : serviceName,
     composeCommand,
     composeArguments: parseArray(core.getInput('composeArguments')),
     runCommand: parseArray(core.getInput('runCommand')),
