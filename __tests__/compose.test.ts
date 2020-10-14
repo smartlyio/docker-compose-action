@@ -243,7 +243,7 @@ describe('Main action entrypoint', () => {
         '-p',
         projectName,
         'up',
-        '--abort-on-container-exit',
+        '--abort-on-container-exit'
       ],
       undefined
     ]);

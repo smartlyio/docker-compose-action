@@ -73,7 +73,9 @@ export async function getContext(): Promise<Context> {
   }
 
   if (composeCommand === 'run' && !serviceName) {
-    throw new Error('serviceName must be provided when composeCommand is "run"');
+    throw new Error(
+      'serviceName must be provided when composeCommand is "run"'
+    );
   }
 
   const context: Context = {

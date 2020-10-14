@@ -133,7 +133,9 @@ describe('create project name', () => {
     process.env['GITHUB_RUN_ID'] = `${runId}`;
     process.env['GITHUB_RUN_NUMBER'] = `${runNumber}`;
     process.env['GITHUB_ACTION'] = actionId;
-    expect(createProjectName()).toEqual(`${org}-${repo}-${runId}-${runNumber}-${actionId}`);
+    expect(createProjectName()).toEqual(
+      `${org}-${repo}-${runId}-${runNumber}-${actionId}`
+    );
   });
 });
 
@@ -305,8 +307,8 @@ describe('get input context', () => {
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       projectName: projectName,
       isPost: false
-    }
-    expect(await getContext()).toEqual(expected)
+    };
+    expect(await getContext()).toEqual(expected);
   });
 
   test('test empty serviceName with composeCommand=run', async () => {
@@ -334,6 +336,8 @@ describe('get input context', () => {
       return inputs[name];
     });
 
-    await expect(getContext()).rejects.toThrowError('serviceName must be provided when composeCommand is "run"')
+    await expect(getContext()).rejects.toThrowError(
+      'serviceName must be provided when composeCommand is "run"'
+    );
   });
 });

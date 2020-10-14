@@ -38,7 +38,12 @@ export async function getContainerId(context: Context): Promise<string | null> {
     }
   };
   try {
-    await runCompose('ps', ['-q'].concat(serviceNameArgsArray(context)), context, options);
+    await runCompose(
+      'ps',
+      ['-q'].concat(serviceNameArgsArray(context)),
+      context,
+      options
+    );
   } catch (e) {
     core.warning(
       'Error running `docker-compose ps`, not returning a container ID'
