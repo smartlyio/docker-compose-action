@@ -36,13 +36,14 @@ export function createProjectName(): string {
   const githubRepository: string = process.env['GITHUB_REPOSITORY'] || '';
   const runId = process.env['GITHUB_RUN_ID'] || '';
   const runNumber = process.env['GITHUB_RUN_NUMBER'] || '';
-  if (!githubRepository || !runId || !runNumber) {
+  const actionId = process.env['GITHUB_ACTION'] || '';
+  if (!githubRepository || !runId || !runNumber || !actionId) {
     throw new Error(
-      'Unexpectedly missing Github context GITHUB_REPOSITORY, GITHUB_RUN_ID, or GITHUB_RUN_NUMBER!'
+      'Unexpectedly missing Github context GITHUB_REPOSITORY, GITHUB_RUN_ID, GITHUB_RUN_NUMBER or GITHUB_ACTION!'
     );
   }
   const repoName = githubRepository.split('/').join('-');
-  return `${repoName}-${runId}-${runNumber}`;
+  return `${repoName}-${runId}-${runNumber}-${actionId}`;
 }
 
 export function parsePushOption(pushOption: string, build: boolean): boolean {

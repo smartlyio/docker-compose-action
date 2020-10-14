@@ -93,6 +93,7 @@ describe('create project name', () => {
     test('GITHUB_REPOSITORY', () => {
       process.env['GITHUB_RUN_ID'] = '5';
       process.env['GITHUB_RUN_NUMBER'] = '1';
+      process.env['GITHUB_ACTION'] = 'compose-action';
       delete process.env['GITHUB_REPOSITORY'];
       expect(createProjectName).toThrowError(/Unexpectedly missing/);
     });
@@ -100,6 +101,7 @@ describe('create project name', () => {
     test('GITHUB_RUN_ID', () => {
       process.env['GITHUB_REPOSITORY'] = 'smartlyio/docker-compose-action';
       process.env['GITHUB_RUN_NUMBER'] = '1';
+      process.env['GITHUB_ACTION'] = 'compose-action';
       delete process.env['GITHUB_RUN_ID'];
       expect(createProjectName).toThrowError(/Unexpectedly missing/);
     });
@@ -107,7 +109,16 @@ describe('create project name', () => {
     test('GITHUB_RUN_NUMBER', () => {
       process.env['GITHUB_REPOSITORY'] = 'smartlyio/docker-compose-action';
       process.env['GITHUB_RUN_ID'] = '5';
+      process.env['GITHUB_ACTION'] = 'compose-action';
       delete process.env['GITHUB_RUN_NUMBER'];
+      expect(createProjectName).toThrowError(/Unexpectedly missing/);
+    });
+
+    test('GITHUB_RUN_NUMBER', () => {
+      process.env['GITHUB_REPOSITORY'] = 'smartlyio/docker-compose-action';
+      process.env['GITHUB_RUN_ID'] = '5';
+      process.env['GITHUB_RUN_NUMBER'] = '1';
+      delete process.env['GITHUB_ACTION'];
       expect(createProjectName).toThrowError(/Unexpectedly missing/);
     });
   });
@@ -117,10 +128,12 @@ describe('create project name', () => {
     const repo = 'docker-compose-action';
     const runId = 5;
     const runNumber = 1;
+    const actionId = 'compose-action';
     process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
     process.env['GITHUB_RUN_ID'] = `${runId}`;
     process.env['GITHUB_RUN_NUMBER'] = `${runNumber}`;
-    expect(createProjectName()).toEqual(`${org}-${repo}-${runId}-${runNumber}`);
+    process.env['GITHUB_ACTION'] = actionId;
+    expect(createProjectName()).toEqual(`${org}-${repo}-${runId}-${runNumber}-${actionId}`);
   });
 });
 
@@ -178,10 +191,12 @@ describe('get input context', () => {
     const repo = 'docker-compose-action';
     const runId = 5;
     const runNumber = 1;
+    const actionId = 'compose-action';
     process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
     process.env['GITHUB_RUN_ID'] = `${runId}`;
     process.env['GITHUB_RUN_NUMBER'] = `${runNumber}`;
-    const projectName = `${org}-${repo}-${runId}-${runNumber}`;
+    process.env['GITHUB_ACTION'] = actionId;
+    const projectName = `${org}-${repo}-${runId}-${runNumber}-${actionId}`;
 
     const inputs: Record<string, string> = {
       composeFile: 'docker-compose.ci.yml',
@@ -231,10 +246,12 @@ describe('get input context', () => {
     const repo = 'docker-compose-action';
     const runId = 5;
     const runNumber = 1;
+    const actionId = 'compose-action';
     process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
     process.env['GITHUB_RUN_ID'] = `${runId}`;
     process.env['GITHUB_RUN_NUMBER'] = `${runNumber}`;
-    const projectName = `${org}-${repo}-${runId}-${runNumber}`;
+    process.env['GITHUB_ACTION'] = actionId;
+    const projectName = `${org}-${repo}-${runId}-${runNumber}-${actionId}`;
 
     const inputs: Record<string, string> = {
       composeFile: 'docker-compose.ci.yml',
@@ -257,10 +274,12 @@ describe('get input context', () => {
     const repo = 'docker-compose-action';
     const runId = 5;
     const runNumber = 1;
+    const actionId = 'compose-action';
     process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
     process.env['GITHUB_RUN_ID'] = `${runId}`;
     process.env['GITHUB_RUN_NUMBER'] = `${runNumber}`;
-    const projectName = `${org}-${repo}-${runId}-${runNumber}`;
+    process.env['GITHUB_ACTION'] = actionId;
+    const projectName = `${org}-${repo}-${runId}-${runNumber}-${actionId}`;
 
     const inputs: Record<string, string> = {
       composeFile: 'docker-compose.ci.yml',
@@ -295,10 +314,12 @@ describe('get input context', () => {
     const repo = 'docker-compose-action';
     const runId = 5;
     const runNumber = 1;
+    const actionId = 'compose-action';
     process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
     process.env['GITHUB_RUN_ID'] = `${runId}`;
     process.env['GITHUB_RUN_NUMBER'] = `${runNumber}`;
-    const projectName = `${org}-${repo}-${runId}-${runNumber}`;
+    process.env['GITHUB_ACTION'] = actionId;
+    const projectName = `${org}-${repo}-${runId}-${runNumber}-${actionId}`;
 
     const inputs: Record<string, string> = {
       composeFile: 'docker-compose.ci.yml',
