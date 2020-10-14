@@ -251,4 +251,68 @@ describe('get input context', () => {
 
     await expect(getContext()).rejects.toThrowError(/composeCommand not in/);
   });
+
+  test('test empty serviceName', async () => {
+    const org = 'smartlyio';
+    const repo = 'docker-compose-action';
+    const runId = 5;
+    const runNumber = 1;
+    process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
+    process.env['GITHUB_RUN_ID'] = `${runId}`;
+    process.env['GITHUB_RUN_NUMBER'] = `${runNumber}`;
+    const projectName = `${org}-${repo}-${runId}-${runNumber}`;
+
+    const inputs: Record<string, string> = {
+      composeFile: 'docker-compose.ci.yml',
+      serviceName: '',
+      composeCommand: 'up',
+      composeArguments: '--abort-on-container-exit',
+      runCommand: '',
+      build: 'false',
+      push: 'on:push'
+    };
+    mocked(getInput).mockImplementation(name => {
+      return inputs[name];
+    });
+
+    const expected: Context = {
+      composeFile: inputs.composeFile,
+      serviceName: null,
+      composeCommand: 'up',
+      composeArguments: ['--abort-on-container-exit'],
+      runCommand: [],
+      build: false,
+      push: false,
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
+      projectName: projectName,
+      isPost: false
+    }
+    expect(await getContext()).toEqual(expected)
+  });
+
+  test('test empty serviceName with composeCommand=run', async () => {
+    const org = 'smartlyio';
+    const repo = 'docker-compose-action';
+    const runId = 5;
+    const runNumber = 1;
+    process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
+    process.env['GITHUB_RUN_ID'] = `${runId}`;
+    process.env['GITHUB_RUN_NUMBER'] = `${runNumber}`;
+    const projectName = `${org}-${repo}-${runId}-${runNumber}`;
+
+    const inputs: Record<string, string> = {
+      composeFile: 'docker-compose.ci.yml',
+      serviceName: '',
+      composeCommand: 'run',
+      composeArguments: '--rm',
+      runCommand: '',
+      build: 'false',
+      push: 'on:push'
+    };
+    mocked(getInput).mockImplementation(name => {
+      return inputs[name];
+    });
+
+    await expect(getContext()).rejects.toThrowError('serviceName must be provided when composeCommand is "run"')
+  });
 });
