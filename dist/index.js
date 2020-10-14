@@ -1440,7 +1440,7 @@ function getContainerId(context) {
             }
         };
         try {
-            yield runCompose('ps', ['-q', context.serviceName], context, options);
+            yield runCompose('ps', ['-q'].concat(serviceNameArgsArray(context)), context, options);
         }
         catch (e) {
             core.warning('Error running `docker-compose ps`, not returning a container ID');
@@ -1450,17 +1450,26 @@ function getContainerId(context) {
     });
 }
 exports.getContainerId = getContainerId;
+function serviceNameArgsArray(context) {
+    if (context.serviceName) {
+        return [context.serviceName];
+    }
+    else {
+        return [];
+    }
+}
 function runAction(context) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield runCompose('pull', [context.serviceName], context);
+        const serviceNameArgs = serviceNameArgsArray(context);
+        yield runCompose('pull', serviceNameArgs, context);
         if (context.build) {
-            yield runCompose('build', [context.serviceName], context);
+            yield runCompose('build', serviceNameArgs, context);
         }
-        const args = [];
+        let args = [];
         for (const part of context.composeArguments) {
             args.push(part);
         }
-        args.push(context.serviceName);
+        args = args.concat(serviceNameArgs);
         if (context.composeCommand === 'run') {
             for (const part of context.runCommand) {
                 args.push(part);
@@ -1483,7 +1492,7 @@ function runCleanup(context) {
         const errors = [];
         if (context.push) {
             try {
-                yield runCompose('push', [context.serviceName], context);
+                yield runCompose('push', serviceNameArgsArray(context), context);
             }
             catch (e) {
                 errors.push(e.message);
@@ -1643,11 +1652,12 @@ function createProjectName() {
     const githubRepository = process.env['GITHUB_REPOSITORY'] || '';
     const runId = process.env['GITHUB_RUN_ID'] || '';
     const runNumber = process.env['GITHUB_RUN_NUMBER'] || '';
-    if (!githubRepository || !runId || !runNumber) {
-        throw new Error('Unexpectedly missing Github context GITHUB_REPOSITORY, GITHUB_RUN_ID, or GITHUB_RUN_NUMBER!');
+    const actionId = process.env['GITHUB_ACTION'] || '';
+    if (!githubRepository || !runId || !runNumber || !actionId) {
+        throw new Error('Unexpectedly missing Github context GITHUB_REPOSITORY, GITHUB_RUN_ID, GITHUB_RUN_NUMBER or GITHUB_ACTION!');
     }
     const repoName = githubRepository.split('/').join('-');
-    return `${repoName}-${runId}-${runNumber}`;
+    return `${repoName}-${runId}-${runNumber}-${actionId}`;
 }
 exports.createProjectName = createProjectName;
 function parsePushOption(pushOption, build) {
@@ -1668,13 +1678,17 @@ function getContext() {
         const pushOption = core.getInput('push');
         const push = parsePushOption(pushOption, build);
         const post = isPost();
+        const serviceName = core.getInput('serviceName');
         const composeCommand = core.getInput('composeCommand');
         if (composeCommand !== 'up' && composeCommand !== 'run') {
             throw new Error('composeCommand not in [up|run]');
         }
+        if (composeCommand === 'run' && !serviceName) {
+            throw new Error('serviceName must be provided when composeCommand is "run"');
+        }
         const context = {
             composeFile: core.getInput('composeFile'),
-            serviceName: core.getInput('serviceName', { required: true }),
+            serviceName: serviceName === '' ? null : serviceName,
             composeCommand,
             composeArguments: parseArray(core.getInput('composeArguments')),
             runCommand: parseArray(core.getInput('runCommand')),
