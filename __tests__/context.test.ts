@@ -144,8 +144,8 @@ describe('create project name', () => {
     expect(createProjectName()).toEqual(projectName);
 
     const callArgs = new RegExp(`${projectName}`);
-    expect(mocked(info).mock.calls.length).toEqual(1)
-    expect(mocked(info).mock.calls[0][0]).toMatch(callArgs)
+    expect(mocked(info).mock.calls.length).toEqual(1);
+    expect(mocked(info).mock.calls[0][0]).toMatch(callArgs);
   });
 });
 

@@ -1650,14 +1650,17 @@ function parseArray(value) {
 exports.parseArray = parseArray;
 function createProjectName() {
     const githubRepository = process.env['GITHUB_REPOSITORY'] || '';
+    const jobId = process.env['GITHUB_JOB'] || '';
     const runId = process.env['GITHUB_RUN_ID'] || '';
     const runNumber = process.env['GITHUB_RUN_NUMBER'] || '';
     const actionId = process.env['GITHUB_ACTION'] || '';
-    if (!githubRepository || !runId || !runNumber || !actionId) {
-        throw new Error('Unexpectedly missing Github context GITHUB_REPOSITORY, GITHUB_RUN_ID, GITHUB_RUN_NUMBER or GITHUB_ACTION!');
+    if (!githubRepository || !jobId || !runId || !runNumber || !actionId) {
+        throw new Error('Unexpectedly missing Github context GITHUB_REPOSITORY, GITHUB_JOB, GITHUB_RUN_ID, GITHUB_RUN_NUMBER or GITHUB_ACTION!');
     }
     const repoName = githubRepository.split('/').join('-');
-    return `${repoName}-${runId}-${runNumber}-${actionId}`;
+    const projectName = `${repoName}-${jobId}-${runId}-${runNumber}-${actionId}`;
+    core.info(`Running compose with project name ${projectName}`);
+    return projectName;
 }
 exports.createProjectName = createProjectName;
 function parsePushOption(pushOption, build) {
