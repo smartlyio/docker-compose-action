@@ -193,6 +193,72 @@ describe('Main action entrypoint', () => {
     ]);
   });
 
+  test('run action without serviceName', async () => {
+    const projectName = 'test-name';
+    const context: Context = {
+      composeFile: 'docker-compose.ci.yml',
+      serviceName: null,
+      composeCommand: 'up',
+      composeArguments: ['--abort-on-container-exit'],
+      runCommand: ['ignored'],
+      build: true,
+      push: false,
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
+      isPost: false,
+      projectName: projectName
+    };
+    const containerId = 'abc123';
+
+    const mockExec = mocked(exec);
+    mockExec.mockImplementation(
+      async (cmd, args, options): Promise<number> => {
+        if (options && options.listeners && options.listeners.stdout) {
+          options.listeners.stdout(new Buffer(`${containerId}\n`));
+        }
+        return 0;
+      }
+    );
+
+    const output = await runAction(context);
+
+    expect(output).toEqual(containerId);
+
+    const calls = mockExec.mock.calls;
+    expect(calls.length).toBe(4);
+    expect(calls[0]).toEqual([
+      'docker-compose',
+      ['-f', context.composeFile, '-p', projectName, 'pull'],
+      undefined
+    ]);
+    expect(calls[1]).toEqual([
+      'docker-compose',
+      ['-f', context.composeFile, '-p', projectName, 'build'],
+      undefined
+    ]);
+    expect(calls[2]).toEqual([
+      'docker-compose',
+      [
+        '-f',
+        context.composeFile,
+        '-p',
+        projectName,
+        'up',
+        '--abort-on-container-exit'
+      ],
+      undefined
+    ]);
+    const expectedOptions = expect.objectContaining({
+      listeners: expect.objectContaining({
+        stdout: expect.anything()
+      })
+    });
+    expect(calls[3]).toEqual([
+      'docker-compose',
+      ['-f', context.composeFile, '-p', projectName, 'ps', '-q'],
+      expectedOptions
+    ]);
+  });
+
   test('run action with compose run', async () => {
     const projectName = 'test-name';
     const serviceName = 'test-service';
@@ -388,7 +454,7 @@ describe('Post-action entrypoint', () => {
     ]);
   });
 
-  test("post-action cleanup doens't abort on first error", async () => {
+  test("post-action cleanup doesn't abort on first error", async () => {
     const projectName = 'test-name';
     const serviceName = 'test-service';
     const context: Context = {

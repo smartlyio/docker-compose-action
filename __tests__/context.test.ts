@@ -9,12 +9,13 @@ import {
   loadState
 } from '../src/context';
 import {mocked} from 'ts-jest/utils';
-import {getInput, saveState, getState} from '@actions/core';
+import {getInput, saveState, getState, info} from '@actions/core';
 
 jest.mock('@actions/core', () => ({
   getInput: jest.fn(),
   saveState: jest.fn(),
-  getState: jest.fn()
+  getState: jest.fn(),
+  info: jest.fn()
 }));
 
 const OLD_ENV = process.env;
@@ -91,23 +92,38 @@ describe('parseArray', () => {
 describe('create project name', () => {
   describe('missing environment variables', () => {
     test('GITHUB_REPOSITORY', () => {
+      process.env['GITHUB_JOB'] = 'test-job';
       process.env['GITHUB_RUN_ID'] = '5';
       process.env['GITHUB_RUN_NUMBER'] = '1';
+      process.env['GITHUB_ACTION'] = 'compose-action';
       delete process.env['GITHUB_REPOSITORY'];
       expect(createProjectName).toThrowError(/Unexpectedly missing/);
     });
 
     test('GITHUB_RUN_ID', () => {
       process.env['GITHUB_REPOSITORY'] = 'smartlyio/docker-compose-action';
+      process.env['GITHUB_JOB'] = 'test-job';
       process.env['GITHUB_RUN_NUMBER'] = '1';
+      process.env['GITHUB_ACTION'] = 'compose-action';
       delete process.env['GITHUB_RUN_ID'];
       expect(createProjectName).toThrowError(/Unexpectedly missing/);
     });
 
     test('GITHUB_RUN_NUMBER', () => {
       process.env['GITHUB_REPOSITORY'] = 'smartlyio/docker-compose-action';
+      process.env['GITHUB_JOB'] = 'test-job';
       process.env['GITHUB_RUN_ID'] = '5';
+      process.env['GITHUB_ACTION'] = 'compose-action';
       delete process.env['GITHUB_RUN_NUMBER'];
+      expect(createProjectName).toThrowError(/Unexpectedly missing/);
+    });
+
+    test('GITHUB_RUN_NUMBER', () => {
+      process.env['GITHUB_REPOSITORY'] = 'smartlyio/docker-compose-action';
+      process.env['GITHUB_JOB'] = 'test-job';
+      process.env['GITHUB_RUN_ID'] = '5';
+      process.env['GITHUB_RUN_NUMBER'] = '1';
+      delete process.env['GITHUB_ACTION'];
       expect(createProjectName).toThrowError(/Unexpectedly missing/);
     });
   });
@@ -115,12 +131,21 @@ describe('create project name', () => {
   test('creates a unique project name', () => {
     const org = 'smartlyio';
     const repo = 'docker-compose-action';
+    const job = 'test-job';
     const runId = 5;
     const runNumber = 1;
+    const actionId = 'compose-action';
     process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
+    process.env['GITHUB_JOB'] = job;
     process.env['GITHUB_RUN_ID'] = `${runId}`;
     process.env['GITHUB_RUN_NUMBER'] = `${runNumber}`;
-    expect(createProjectName()).toEqual(`${org}-${repo}-${runId}-${runNumber}`);
+    process.env['GITHUB_ACTION'] = actionId;
+    const projectName = `${org}-${repo}-${job}-${runId}-${runNumber}-${actionId}`;
+    expect(createProjectName()).toEqual(projectName);
+
+    const callArgs = new RegExp(`${projectName}`);
+    expect(mocked(info).mock.calls.length).toEqual(1);
+    expect(mocked(info).mock.calls[0][0]).toMatch(callArgs);
   });
 });
 
@@ -176,12 +201,16 @@ describe('get input context', () => {
   test('test inputs and save/load state for post process', async () => {
     const org = 'smartlyio';
     const repo = 'docker-compose-action';
+    const job = 'test-job';
     const runId = 5;
     const runNumber = 1;
+    const actionId = 'compose-action';
     process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
+    process.env['GITHUB_JOB'] = job;
     process.env['GITHUB_RUN_ID'] = `${runId}`;
     process.env['GITHUB_RUN_NUMBER'] = `${runNumber}`;
-    const projectName = `${org}-${repo}-${runId}-${runNumber}`;
+    process.env['GITHUB_ACTION'] = actionId;
+    const projectName = `${org}-${repo}-${job}-${runId}-${runNumber}-${actionId}`;
 
     const inputs: Record<string, string> = {
       composeFile: 'docker-compose.ci.yml',
@@ -231,10 +260,13 @@ describe('get input context', () => {
     const repo = 'docker-compose-action';
     const runId = 5;
     const runNumber = 1;
+    const actionId = 'compose-action';
     process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
+    process.env['GITHUB_JOB'] = 'test-job';
     process.env['GITHUB_RUN_ID'] = `${runId}`;
     process.env['GITHUB_RUN_NUMBER'] = `${runNumber}`;
-    const projectName = `${org}-${repo}-${runId}-${runNumber}`;
+    process.env['GITHUB_ACTION'] = actionId;
+    const projectName = `${org}-${repo}-${runId}-${runNumber}-${actionId}`;
 
     const inputs: Record<string, string> = {
       composeFile: 'docker-compose.ci.yml',
@@ -250,5 +282,78 @@ describe('get input context', () => {
     });
 
     await expect(getContext()).rejects.toThrowError(/composeCommand not in/);
+  });
+
+  test('test empty serviceName', async () => {
+    const org = 'smartlyio';
+    const repo = 'docker-compose-action';
+    const job = 'test-job';
+    const runId = 5;
+    const runNumber = 1;
+    const actionId = 'compose-action';
+    process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
+    process.env['GITHUB_JOB'] = job;
+    process.env['GITHUB_RUN_ID'] = `${runId}`;
+    process.env['GITHUB_RUN_NUMBER'] = `${runNumber}`;
+    process.env['GITHUB_ACTION'] = actionId;
+    const projectName = `${org}-${repo}-${job}-${runId}-${runNumber}-${actionId}`;
+
+    const inputs: Record<string, string> = {
+      composeFile: 'docker-compose.ci.yml',
+      serviceName: '',
+      composeCommand: 'up',
+      composeArguments: '--abort-on-container-exit',
+      runCommand: '',
+      build: 'false',
+      push: 'on:push'
+    };
+    mocked(getInput).mockImplementation(name => {
+      return inputs[name];
+    });
+
+    const expected: Context = {
+      composeFile: inputs.composeFile,
+      serviceName: null,
+      composeCommand: 'up',
+      composeArguments: ['--abort-on-container-exit'],
+      runCommand: [],
+      build: false,
+      push: false,
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
+      projectName: projectName,
+      isPost: false
+    };
+    expect(await getContext()).toEqual(expected);
+  });
+
+  test('test empty serviceName with composeCommand=run', async () => {
+    const org = 'smartlyio';
+    const repo = 'docker-compose-action';
+    const runId = 5;
+    const runNumber = 1;
+    const actionId = 'compose-action';
+    process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
+    process.env['GITHUB_JOB'] = 'test-job';
+    process.env['GITHUB_RUN_ID'] = `${runId}`;
+    process.env['GITHUB_RUN_NUMBER'] = `${runNumber}`;
+    process.env['GITHUB_ACTION'] = actionId;
+    const projectName = `${org}-${repo}-${runId}-${runNumber}-${actionId}`;
+
+    const inputs: Record<string, string> = {
+      composeFile: 'docker-compose.ci.yml',
+      serviceName: '',
+      composeCommand: 'run',
+      composeArguments: '--rm',
+      runCommand: '',
+      build: 'false',
+      push: 'on:push'
+    };
+    mocked(getInput).mockImplementation(name => {
+      return inputs[name];
+    });
+
+    await expect(getContext()).rejects.toThrowError(
+      'serviceName must be provided when composeCommand is "run"'
+    );
   });
 });

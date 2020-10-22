@@ -8,7 +8,7 @@ export function isPost(): boolean {
 export interface Context {
   // Action inputs
   composeFile: string;
-  serviceName: string;
+  serviceName: string | null;
   composeCommand: string;
   composeArguments: string[];
   runCommand: string[];
@@ -34,15 +34,19 @@ export function parseArray(value: string): string[] {
 
 export function createProjectName(): string {
   const githubRepository: string = process.env['GITHUB_REPOSITORY'] || '';
+  const jobId = process.env['GITHUB_JOB'] || '';
   const runId = process.env['GITHUB_RUN_ID'] || '';
   const runNumber = process.env['GITHUB_RUN_NUMBER'] || '';
-  if (!githubRepository || !runId || !runNumber) {
+  const actionId = process.env['GITHUB_ACTION'] || '';
+  if (!githubRepository || !jobId || !runId || !runNumber || !actionId) {
     throw new Error(
-      'Unexpectedly missing Github context GITHUB_REPOSITORY, GITHUB_RUN_ID, or GITHUB_RUN_NUMBER!'
+      'Unexpectedly missing Github context GITHUB_REPOSITORY, GITHUB_JOB, GITHUB_RUN_ID, GITHUB_RUN_NUMBER or GITHUB_ACTION!'
     );
   }
   const repoName = githubRepository.split('/').join('-');
-  return `${repoName}-${runId}-${runNumber}`;
+  const projectName = `${repoName}-${jobId}-${runId}-${runNumber}-${actionId}`;
+  core.info(`Running compose with project name ${projectName}`);
+  return projectName;
 }
 
 export function parsePushOption(pushOption: string, build: boolean): boolean {
@@ -64,15 +68,22 @@ export async function getContext(): Promise<Context> {
   const pushOption: string = core.getInput('push');
   const push: boolean = parsePushOption(pushOption, build);
   const post: boolean = isPost();
+  const serviceName: string = core.getInput('serviceName');
 
   const composeCommand = core.getInput('composeCommand');
   if (composeCommand !== 'up' && composeCommand !== 'run') {
     throw new Error('composeCommand not in [up|run]');
   }
 
+  if (composeCommand === 'run' && !serviceName) {
+    throw new Error(
+      'serviceName must be provided when composeCommand is "run"'
+    );
+  }
+
   const context: Context = {
     composeFile: core.getInput('composeFile'),
-    serviceName: core.getInput('serviceName', {required: true}),
+    serviceName: serviceName === '' ? null : serviceName,
     composeCommand,
     composeArguments: parseArray(core.getInput('composeArguments')),
     runCommand: parseArray(core.getInput('runCommand')),
