@@ -1440,7 +1440,7 @@ function getContainerId(context) {
             }
         };
         try {
-            yield runCompose('ps', ['-q'].concat(serviceNameArgsArray(context)), context, options);
+            yield runCompose('ps', ['-aq'].concat(serviceNameArgsArray(context)), context, options);
         }
         catch (e) {
             core.warning('Error running `docker-compose ps`, not returning a container ID');
