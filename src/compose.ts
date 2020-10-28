@@ -40,7 +40,7 @@ export async function getContainerId(context: Context): Promise<string | null> {
   try {
     await runCompose(
       'ps',
-      ['-q'].concat(serviceNameArgsArray(context)),
+      ['-aq'].concat(serviceNameArgsArray(context)),
       context,
       options
     );

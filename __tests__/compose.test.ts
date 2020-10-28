@@ -188,7 +188,7 @@ describe('Main action entrypoint', () => {
     });
     expect(calls[3]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'ps', '-q', serviceName],
+      ['-f', context.composeFile, '-p', projectName, 'ps', '-aq', serviceName],
       expectedOptions
     ]);
   });
@@ -254,7 +254,7 @@ describe('Main action entrypoint', () => {
     });
     expect(calls[3]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'ps', '-q'],
+      ['-f', context.composeFile, '-p', projectName, 'ps', '-aq'],
       expectedOptions
     ]);
   });
@@ -315,7 +315,7 @@ describe('Main action entrypoint', () => {
     });
     expect(calls[2]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'ps', '-q', serviceName],
+      ['-f', context.composeFile, '-p', projectName, 'ps', '-aq', serviceName],
       expectedOptions
     ]);
   });
