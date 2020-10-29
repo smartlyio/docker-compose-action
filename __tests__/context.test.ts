@@ -342,14 +342,12 @@ describe('get input context', () => {
     const repo = 'docker-compose-action';
     const job = 'test-job';
     const runId = 5;
-    const runNumber = 1;
-    const actionId = 'compose-action';
+    const uuid = '8f88c92b-72b5-4745-b81a-7a8f57a0c487';
     process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
     process.env['GITHUB_JOB'] = job;
     process.env['GITHUB_RUN_ID'] = `${runId}`;
-    process.env['GITHUB_RUN_NUMBER'] = `${runNumber}`;
-    process.env['GITHUB_ACTION'] = actionId;
-    const projectName = `${org}-${repo}-${job}-${runId}-${runNumber}-${actionId}`;
+    mocked(uuidv4).mockImplementation(() => uuid);
+    const projectName = `${org}-${repo}-${job}-${runId}-${uuid}`;
 
     const inputs: Record<string, string> = {
       composeFile: 'docker-compose.ci.yml',
