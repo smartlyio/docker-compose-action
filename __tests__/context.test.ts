@@ -357,7 +357,7 @@ describe('get input context', () => {
     );
   });
 
-  test.only('test default composeArguments with compose run', async () => {
+  test('test default composeArguments with compose run', async () => {
     const org = 'smartlyio';
     const repo = 'docker-compose-action';
     const job = 'test-job';
