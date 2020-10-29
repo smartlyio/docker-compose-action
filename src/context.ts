@@ -1,4 +1,5 @@
 import * as core from '@actions/core';
+import {v4 as uuidv4} from 'uuid';
 
 export function isPost(): boolean {
   // Will be false if the environment variable doesn't exist; true if it does.
@@ -36,15 +37,14 @@ export function createProjectName(): string {
   const githubRepository: string = process.env['GITHUB_REPOSITORY'] || '';
   const jobId = process.env['GITHUB_JOB'] || '';
   const runId = process.env['GITHUB_RUN_ID'] || '';
-  const runNumber = process.env['GITHUB_RUN_NUMBER'] || '';
-  const actionId = process.env['GITHUB_ACTION'] || '';
-  if (!githubRepository || !jobId || !runId || !runNumber || !actionId) {
+  const uuid = uuidv4();
+  if (!githubRepository || !jobId || !runId) {
     throw new Error(
-      'Unexpectedly missing Github context GITHUB_REPOSITORY, GITHUB_JOB, GITHUB_RUN_ID, GITHUB_RUN_NUMBER or GITHUB_ACTION!'
+      'Unexpectedly missing Github context GITHUB_REPOSITORY, GITHUB_JOB, GITHUB_RUN_ID!'
     );
   }
   const repoName = githubRepository.split('/').join('-');
-  const projectName = `${repoName}-${jobId}-${runId}-${runNumber}-${actionId}`;
+  const projectName = `${repoName}-${jobId}-${runId}-${uuid}`;
   core.info(`Running compose with project name ${projectName}`);
   return projectName;
 }
