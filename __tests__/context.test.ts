@@ -356,4 +356,46 @@ describe('get input context', () => {
       'serviceName must be provided when composeCommand is "run"'
     );
   });
+
+  test.only('test default composeArguments with compose run', async () => {
+    const org = 'smartlyio';
+    const repo = 'docker-compose-action';
+    const job = 'test-job';
+    const runId = 5;
+    const runNumber = 1;
+    const actionId = 'compose-action';
+    process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
+    process.env['GITHUB_JOB'] = job;
+    process.env['GITHUB_RUN_ID'] = `${runId}`;
+    process.env['GITHUB_RUN_NUMBER'] = `${runNumber}`;
+    process.env['GITHUB_ACTION'] = actionId;
+    const projectName = `${org}-${repo}-${job}-${runId}-${runNumber}-${actionId}`;
+
+    const inputs: Record<string, string> = {
+      composeFile: 'docker-compose.ci.yml',
+      serviceName: 'test',
+      composeCommand: 'run',
+      composeArguments: '--abort-on-container-exit',
+      runCommand: '',
+      build: 'false',
+      push: 'on:push'
+    };
+    mocked(getInput).mockImplementation(name => {
+      return inputs[name];
+    });
+
+    const expected: Context = {
+      composeFile: inputs.composeFile,
+      serviceName: 'test',
+      composeCommand: 'run',
+      composeArguments: [],
+      runCommand: [],
+      build: false,
+      push: false,
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
+      projectName: projectName,
+      isPost: false
+    };
+    expect(await getContext()).toEqual(expected);
+  });
 });
