@@ -1689,11 +1689,18 @@ function getContext() {
         if (composeCommand === 'run' && !serviceName) {
             throw new Error('serviceName must be provided when composeCommand is "run"');
         }
+        const composeArguments = parseArray(core.getInput('composeArguments'));
+        if (composeCommand === 'run' &&
+            composeArguments.length === 1 &&
+            composeArguments[0] === '--abort-on-container-exit') {
+            // Just remove the single argument from the array.
+            composeArguments.pop();
+        }
         const context = {
             composeFile: core.getInput('composeFile'),
             serviceName: serviceName === '' ? null : serviceName,
             composeCommand,
-            composeArguments: parseArray(core.getInput('composeArguments')),
+            composeArguments: composeArguments,
             runCommand: parseArray(core.getInput('runCommand')),
             build,
             // Derived context
