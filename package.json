@@ -25,7 +25,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.2.4",
+    "@actions/core": "^1.2.6",
     "@actions/exec": "1.0.4",
     "@types/uuid": "8.3.0",
     "uuid": "8.3.1"
