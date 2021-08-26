@@ -1,7 +1,8 @@
 {
   "extends": [
-    "github>smartlyio/renovate-config:security-base",
-    "github>smartlyio/renovate-config:github-actions",
     "config:base"
-  ]
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true
+  }
 }
