@@ -143,14 +143,12 @@ describe('Main action entrypoint', () => {
     const containerId = 'abc123';
 
     const mockExec = mocked(exec);
-    mockExec.mockImplementation(
-      async (cmd, args, options): Promise<number> => {
-        if (options && options.listeners && options.listeners.stdout) {
-          options.listeners.stdout(new Buffer(`${containerId}\n`));
-        }
-        return 0;
+    mockExec.mockImplementation(async (cmd, args, options): Promise<number> => {
+      if (options && options.listeners && options.listeners.stdout) {
+        options.listeners.stdout(new Buffer(`${containerId}\n`));
       }
-    );
+      return 0;
+    });
 
     const output = await runAction(context);
 
@@ -210,14 +208,12 @@ describe('Main action entrypoint', () => {
     const containerId = 'abc123';
 
     const mockExec = mocked(exec);
-    mockExec.mockImplementation(
-      async (cmd, args, options): Promise<number> => {
-        if (options && options.listeners && options.listeners.stdout) {
-          options.listeners.stdout(new Buffer(`${containerId}\n`));
-        }
-        return 0;
+    mockExec.mockImplementation(async (cmd, args, options): Promise<number> => {
+      if (options && options.listeners && options.listeners.stdout) {
+        options.listeners.stdout(new Buffer(`${containerId}\n`));
       }
-    );
+      return 0;
+    });
 
     const output = await runAction(context);
 
@@ -277,14 +273,12 @@ describe('Main action entrypoint', () => {
     };
 
     const mockExec = mocked(exec);
-    mockExec.mockImplementation(
-      async (cmd, args, options): Promise<number> => {
-        if (options && options.listeners && options.listeners.stdout) {
-          throw new Error("Container doesn't exist?");
-        }
-        return 0;
+    mockExec.mockImplementation(async (cmd, args, options): Promise<number> => {
+      if (options && options.listeners && options.listeners.stdout) {
+        throw new Error("Container doesn't exist?");
       }
-    );
+      return 0;
+    });
 
     const output = await runAction(context);
     expect(output).toBe(null);
@@ -339,24 +333,18 @@ describe('Main action entrypoint', () => {
 
     const mockExec = mocked(exec);
     mockExec
-      .mockImplementationOnce(
-        async (cmd, args, options): Promise<number> => {
-          return 0;
+      .mockImplementationOnce(async (cmd, args, options): Promise<number> => {
+        return 0;
+      })
+      .mockImplementationOnce(async (cmd, args, options): Promise<number> => {
+        throw new Error('Container failed');
+      })
+      .mockImplementationOnce(async (cmd, args, options): Promise<number> => {
+        if (options && options.listeners && options.listeners.stdout) {
+          options.listeners.stdout(Buffer.from('container-id'));
         }
-      )
-      .mockImplementationOnce(
-        async (cmd, args, options): Promise<number> => {
-          throw new Error('Container failed');
-        }
-      )
-      .mockImplementationOnce(
-        async (cmd, args, options): Promise<number> => {
-          if (options && options.listeners && options.listeners.stdout) {
-            options.listeners.stdout(Buffer.from('container-id'));
-          }
-          return 0;
-        }
-      );
+        return 0;
+      });
 
     await expect(runAction(context)).rejects.toThrow(
       new ComposeError('Container failed', 'container-id')
