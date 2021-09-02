@@ -81,7 +81,7 @@ export async function runAction(context: Context): Promise<string | null> {
     await runCompose(context.composeCommand, args, context);
   } catch (e) {
     const containerId = await getContainerId(context);
-    throw new ComposeError(e.message, containerId);
+    throw new ComposeError(`${e}`, containerId);
   }
 
   const containerId = await getContainerId(context);
@@ -94,7 +94,7 @@ export async function runCleanup(context: Context): Promise<void> {
     try {
       await runCompose('push', serviceNameArgsArray(context), context);
     } catch (e) {
-      errors.push(e.message);
+      errors.push(`${e}`);
     }
   }
 
@@ -102,7 +102,7 @@ export async function runCleanup(context: Context): Promise<void> {
     try {
       await runCompose(command, [], context);
     } catch (e) {
-      errors.push(e.message);
+      errors.push(`${e}`);
     }
   }
 
