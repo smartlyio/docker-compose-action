@@ -13,7 +13,7 @@ async function run(): Promise<void> {
     if (error instanceof ComposeError && error.containerId) {
       core.setOutput('container_id', error.containerId);
     }
-    core.setFailed(error.message);
+    core.setFailed(`${error}`);
   }
 }
 
