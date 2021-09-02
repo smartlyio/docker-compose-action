@@ -109,7 +109,7 @@ function runAction(context) {
         }
         catch (e) {
             const containerId = yield getContainerId(context);
-            throw new ComposeError(e.message, containerId);
+            throw new ComposeError(`${e}`, containerId);
         }
         const containerId = yield getContainerId(context);
         return containerId;
@@ -124,7 +124,7 @@ function runCleanup(context) {
                 yield runCompose('push', serviceNameArgsArray(context), context);
             }
             catch (e) {
-                errors.push(e.message);
+                errors.push(`${e}`);
             }
         }
         for (const command of context.postCommand) {
@@ -132,7 +132,7 @@ function runCleanup(context) {
                 yield runCompose(command, [], context);
             }
             catch (e) {
-                errors.push(e.message);
+                errors.push(`${e}`);
             }
         }
         if (errors.length > 0) {
@@ -202,7 +202,7 @@ function createProjectName() {
     const githubRepository = process.env['GITHUB_REPOSITORY'] || '';
     const jobId = process.env['GITHUB_JOB'] || '';
     const runId = process.env['GITHUB_RUN_ID'] || '';
-    const uuid = uuid_1.v4();
+    const uuid = (0, uuid_1.v4)();
     if (!githubRepository || !jobId || !runId) {
         throw new Error('Unexpectedly missing Github context GITHUB_REPOSITORY, GITHUB_JOB, GITHUB_RUN_ID!');
     }
@@ -334,8 +334,8 @@ const compose_1 = __nccwpck_require__(478);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const context = yield context_1.getContext();
-            const containerId = yield compose_1.runAction(context);
+            const context = yield (0, context_1.getContext)();
+            const containerId = yield (0, compose_1.runAction)(context);
             if (containerId) {
                 core.setOutput('container_id', containerId);
             }
@@ -344,17 +344,17 @@ function run() {
             if (error instanceof compose_1.ComposeError && error.containerId) {
                 core.setOutput('container_id', error.containerId);
             }
-            core.setFailed(error.message);
+            core.setFailed(`${error}`);
         }
     });
 }
 function cleanup() {
     return __awaiter(this, void 0, void 0, function* () {
-        const context = yield context_1.loadState();
-        yield compose_1.runCleanup(context);
+        const context = yield (0, context_1.loadState)();
+        yield (0, compose_1.runCleanup)(context);
     });
 }
-if (!context_1.isPost()) {
+if (!(0, context_1.isPost)()) {
     run();
 }
 else {
