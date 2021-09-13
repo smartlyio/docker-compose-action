@@ -3,9 +3,35 @@
     "config:base"
   ],
   "lockFileMaintenance": {
-    "enabled": true
+    "enabled": true,
+    "labels": ["patch", "renovate-deps"]
   },
   "vulnerabilityAlerts": {
     "enabled": true
-  }
+  },
+  "packageRules": [
+    {
+      "depTypeList": ["devDependencies"],
+      "matchUpdateTypes": ["patch"],
+      "labels": ["no release", "renovate-deps"],
+      "automerge": true
+    },
+    {
+      "depTypeList": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "major"],
+      "labels": ["patch", "renovate-deps"]
+    },
+    {
+      "groupName": "dependencies",
+      "matchUpdateTypes": ["patch", "minor"],
+      "depTypeList": ["dependencies"],
+      "labels": ["patch", "renovate-deps"]
+    },
+    {
+      "groupName": "dependencies",
+      "matchUpdateTypes": ["major"],
+      "depTypeList": ["dependencies"],
+      "labels": ["minor", "renovate-deps"]
+    }
+  ]
 }

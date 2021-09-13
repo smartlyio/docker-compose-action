@@ -1,0 +1,10 @@
+name: "Pull Request"
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  @import ./jobs/build
+
+  @import ./jobs/test

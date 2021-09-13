@@ -1,0 +1,19 @@
+test:
+  runs-on: <%= ubuntu_version %>
+  steps:
+  - uses: actions/checkout@v2
+  - name: "Build action for test"
+    run: |
+      npm install
+      npm run all
+      git clean -fXd
+  - name: Test executing the action
+    uses: ./
+    with:
+      composeFile: docker-compose.ci.yml
+      serviceName: test
+      composeCommand: run
+      composeArguments: ""
+      runCommand: ls
+      build: "false"
+      push: "false"

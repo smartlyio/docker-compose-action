@@ -1,0 +1,20 @@
+name: Check Labels
+
+on:
+  pull_request:
+    branches:
+    - master
+    types:
+    - opened
+    - labeled
+    - unlabeled
+    - synchronize
+
+jobs:
+  check_labels:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: smartlyio/check-versioning-action@v5
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
