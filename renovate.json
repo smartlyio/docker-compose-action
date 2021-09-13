@@ -12,13 +12,13 @@
   "packageRules": [
     {
       "depTypeList": ["devDependencies"],
-      "matchUpdateTypes": ["patch", "minor"],
+      "matchUpdateTypes": ["patch"],
       "labels": ["no release", "renovate-deps"],
       "automerge": true
     },
     {
       "depTypeList": ["devDependencies"],
-      "matchUpdateTypes": ["major"],
+      "matchUpdateTypes": ["patch", "major"],
       "labels": ["patch", "renovate-deps"]
     },
     {
