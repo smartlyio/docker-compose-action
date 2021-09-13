@@ -7,5 +7,30 @@
   },
   "vulnerabilityAlerts": {
     "enabled": true
-  }
+  },
+  "packageRules": [
+    {
+      "depTypeList": ["devDependencies"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "labels": ["no release", "renovate-deps"],
+      "automerge": true
+    },
+    {
+      "depTypeList": ["devDependencies"],
+      "matchUpdateTypes": ["major"],
+      "labels": ["patch", "renovate-deps"]
+    },
+    {
+      "groupName": "dependencies",
+      "matchUpdateTypes": ["patch", "minor"],
+      "depTypeList": ["dependencies"],
+      "labels": ["patch", "renovate-deps"]
+    },
+    {
+      "groupName": "dependencies",
+      "matchUpdateTypes": ["major"],
+      "depTypeList": ["dependencies"],
+      "labels": ["minor", "renovate-deps"]
+    }
+  ]
 }
