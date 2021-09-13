@@ -18,7 +18,7 @@
     },
     {
       "depTypeList": ["devDependencies"],
-      "matchUpdateTypes": ["patch", "major"],
+      "matchUpdateTypes": ["minor", "major"],
       "labels": ["patch", "renovate-deps"]
     },
     {
