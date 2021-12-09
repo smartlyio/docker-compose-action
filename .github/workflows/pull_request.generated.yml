@@ -18,6 +18,10 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
+    - name: Set Node.js 12.x
+      uses: actions/setup-node@v2.4.1
+      with:
+        node-version: 12.x
     - name: "Install"
       run: |
         npm install
@@ -39,6 +43,10 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
+    - name: Set Node.js 12.x
+      uses: actions/setup-node@v2.4.1
+      with:
+        node-version: 12.x
     - name: "Build action for test"
       run: |
         npm install
