@@ -1,6 +1,6 @@
 {
   "name": "docker-compose-action",
-  "version": "1.4.16",
+  "version": "1.4.17",
   "private": true,
   "description": "Run docker-compose and enforce cleanup after the job finished",
   "main": "lib/main.js",
