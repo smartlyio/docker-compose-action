@@ -8,7 +8,7 @@ import {
   getContext,
   loadState
 } from '../src/context';
-import {mocked} from 'ts-jest/utils';
+import {mocked} from 'jest-mock';
 import {getInput, saveState, getState, info} from '@actions/core';
 import {v4 as uuidv4} from 'uuid';
 

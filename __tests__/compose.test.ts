@@ -1,6 +1,6 @@
 import {Context} from '../src/context';
 import {runCompose, runAction, runCleanup, ComposeError} from '../src/compose';
-import {mocked} from 'ts-jest/utils';
+import {mocked} from 'jest-mock';
 import {exec} from '@actions/exec';
 
 jest.mock('@actions/exec', () => ({
