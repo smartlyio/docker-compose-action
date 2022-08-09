@@ -8,7 +8,7 @@ import {
   getContext,
   loadState
 } from '../src/context';
-import {mocked} from 'ts-jest/utils';
+import {mocked} from 'jest-mock';
 import {getInput, saveState, getState, info} from '@actions/core';
 import {v4 as uuidv4} from 'uuid';
 
@@ -127,7 +127,7 @@ describe('create project name', () => {
     process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
     process.env['GITHUB_JOB'] = job;
     process.env['GITHUB_RUN_ID'] = `${runId}`;
-    mocked(uuidv4).mockImplementation(() => uuid);
+    mocked(uuidv4).mockReturnValue(uuid);
     const projectName = `${org}-${repo}-${job}-${runId}-${uuid}`;
     expect(createProjectName()).toEqual(projectName);
 
@@ -195,7 +195,7 @@ describe('get input context', () => {
     process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
     process.env['GITHUB_JOB'] = job;
     process.env['GITHUB_RUN_ID'] = `${runId}`;
-    mocked(uuidv4).mockImplementation(() => uuid);
+    mocked(uuidv4).mockReturnValue(uuid);
     const projectName = `${org}-${repo}-${job}-${runId}-${uuid}`;
 
     const inputs: Record<string, string> = {
@@ -249,7 +249,7 @@ describe('get input context', () => {
     process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
     process.env['GITHUB_JOB'] = 'test-job';
     process.env['GITHUB_RUN_ID'] = `${runId}`;
-    mocked(uuidv4).mockImplementation(() => uuid);
+    mocked(uuidv4).mockReturnValue(uuid);
     const projectName = `${org}-${repo}-${runId}-${uuid}`;
 
     const inputs: Record<string, string> = {
@@ -277,7 +277,7 @@ describe('get input context', () => {
     process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
     process.env['GITHUB_JOB'] = job;
     process.env['GITHUB_RUN_ID'] = `${runId}`;
-    mocked(uuidv4).mockImplementation(() => uuid);
+    mocked(uuidv4).mockReturnValue(uuid);
     const projectName = `${org}-${repo}-${job}-${runId}-${uuid}`;
 
     const inputs: Record<string, string> = {
@@ -316,7 +316,7 @@ describe('get input context', () => {
     process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
     process.env['GITHUB_JOB'] = 'test-job';
     process.env['GITHUB_RUN_ID'] = `${runId}`;
-    mocked(uuidv4).mockImplementation(() => uuid);
+    mocked(uuidv4).mockReturnValue(uuid);
     const projectName = `${org}-${repo}-${runId}-${uuid}`;
 
     const inputs: Record<string, string> = {
@@ -346,7 +346,7 @@ describe('get input context', () => {
     process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
     process.env['GITHUB_JOB'] = job;
     process.env['GITHUB_RUN_ID'] = `${runId}`;
-    mocked(uuidv4).mockImplementation(() => uuid);
+    mocked(uuidv4).mockReturnValue(uuid);
     const projectName = `${org}-${repo}-${job}-${runId}-${uuid}`;
 
     const inputs: Record<string, string> = {
