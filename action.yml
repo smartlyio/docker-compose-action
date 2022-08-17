@@ -43,6 +43,6 @@ outputs:
     description: "The docker ID of the service container run."
 
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
   post: 'dist/index.js'

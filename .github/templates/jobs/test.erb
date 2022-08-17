@@ -2,10 +2,10 @@ test:
   runs-on: <%= ubuntu_version %>
   steps:
   - uses: actions/checkout@v2
-  - name: Set Node.js 12.x
-    uses: actions/setup-node@v2
+  - name: Set Node.js 16.x
+    uses: actions/setup-node@v3
     with:
-      node-version: 12.x
+      node-version: 16.x
   - name: "Build action for test"
     run: |
       npm install

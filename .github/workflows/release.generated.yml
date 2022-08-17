@@ -15,13 +15,13 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
-    - name: Set Node.js 12.x
+    - uses: actions/checkout@v2
+    - name: Set Node.js 16.x
       uses: actions/setup-node@v3
       with:
-        node-version: 12.x
+        node-version: 16.x
     - name: "Install"
       run: |
         npm install
@@ -40,13 +40,13 @@ jobs:
         npm run package
 
   test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
-    - name: Set Node.js 12.x
+    - uses: actions/checkout@v2
+    - name: Set Node.js 16.x
       uses: actions/setup-node@v3
       with:
-        node-version: 12.x
+        node-version: 16.x
     - name: "Build action for test"
       run: |
         npm install
@@ -64,18 +64,18 @@ jobs:
         push: "false"
 
   release:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     name: "Build and release action"
     needs: [build, test]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 0
           persist-credentials: true
-      - name: Set Node.js 12.x
+      - name: Set Node.js 16.x
         uses: actions/setup-node@v3
         with:
-          node-version: 12.x
+          node-version: 16.x
       - name: Configure git
         run: |
           git config user.name "Github Action"
