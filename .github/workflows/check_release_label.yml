@@ -12,7 +12,7 @@ on:
 
 jobs:
   check_labels:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: smartlyio/check-versioning-action@v5
       with:
