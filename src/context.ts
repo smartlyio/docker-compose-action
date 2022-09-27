@@ -65,9 +65,12 @@ export function parsePushOption(pushOption: string, build: boolean): boolean {
 }
 
 export function parseBuildArgs(buildArgsString: string): string[] {
+  if (!buildArgsString) {
+    return [];
+  }
   const buildArgValues = buildArgsString.split(',');
   const buildArgs = [];
-  for (arg of buildArgValues) {
+  for (const arg of buildArgValues) {
     buildArgs.push(['--build-arg', arg]);
   }
 
@@ -76,7 +79,7 @@ export function parseBuildArgs(buildArgsString: string): string[] {
 
 export async function getContext(): Promise<Context> {
   const build: boolean = toBoolean(core.getInput('build'));
-  const buildArgsString: boolean = core.getInput('build-args');
+  const buildArgsString: string = core.getInput('build-args');
   const pushOption: string = core.getInput('push');
   const push: boolean = parsePushOption(pushOption, build);
   const post: boolean = isPost();
