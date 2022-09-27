@@ -14,6 +14,7 @@ export interface Context {
   composeArguments: string[];
   runCommand: string[];
   build: boolean;
+  buildArgs: string[];
   // Derived context
   push: boolean;
   postCommand: string[];
@@ -63,8 +64,19 @@ export function parsePushOption(pushOption: string, build: boolean): boolean {
   return false;
 }
 
+export function parseBuildArgs(buildArgsString: string): string[] {
+  const buildArgValues = buildArgsString.split(',');
+  const buildArgs = [];
+  for (arg of buildArgValues) {
+    buildArgs.push(['--build-arg', arg]);
+  }
+
+  return buildArgs.flat();
+}
+
 export async function getContext(): Promise<Context> {
   const build: boolean = toBoolean(core.getInput('build'));
+  const buildArgsString: boolean = core.getInput('build-args');
   const pushOption: string = core.getInput('push');
   const push: boolean = parsePushOption(pushOption, build);
   const post: boolean = isPost();
@@ -100,6 +112,7 @@ export async function getContext(): Promise<Context> {
     composeArguments: composeArguments,
     runCommand: parseArray(core.getInput('runCommand')),
     build,
+    buildArgs: parseBuildArgs(buildArgsString),
     // Derived context
     postCommand: ['down --remove-orphans --volumes', 'rm -f'],
     projectName: createProjectName(),
@@ -114,6 +127,7 @@ export async function getContext(): Promise<Context> {
   core.saveState('composeArguments', context.composeArguments);
   core.saveState('runCommand', context.runCommand);
   core.saveState('build', context.build);
+  core.saveState('buildArgs', buildArgsString);
   core.saveState('postCommand', context.postCommand);
   core.saveState('projectName', context.projectName);
   core.saveState('push', context.push);
@@ -130,6 +144,7 @@ export async function loadState(): Promise<Context> {
     composeArguments: JSON.parse(core.getState('composeArguments')),
     runCommand: JSON.parse(core.getState('runCommand')),
     build: toBoolean(core.getState('build')),
+    buildArgs: parseBuildArgs(core.getState('buildArgs')),
     postCommand: JSON.parse(core.getState('postCommand')),
     projectName: core.getState('projectName'),
     push: toBoolean(core.getState('push')),

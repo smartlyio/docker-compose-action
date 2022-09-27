@@ -38,6 +38,14 @@ inputs:
     default: "on:push"
     required: false
 
+  build-args:
+    description: |
+      Build arguments to pass to docker-compose build, as a comma-separated list.
+      Requires "build" option to be set when used.
+      Values may not contain commas, as a naive string split is used to parse them.
+      e.g. ARG1=value,ARG2=other
+    required: false
+
 outputs:
   container_id:
     description: "The docker ID of the service container run."

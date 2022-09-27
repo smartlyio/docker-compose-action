@@ -62,3 +62,4 @@ jobs:
         runCommand: ls
         build: "false"
         push: "false"
+        build-args: MY_TEST_ARG=some-value

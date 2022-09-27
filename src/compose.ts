@@ -65,7 +65,7 @@ export async function runAction(context: Context): Promise<string | null> {
   const serviceNameArgs = serviceNameArgsArray(context);
   await runCompose('pull', serviceNameArgs, context);
   if (context.build) {
-    await runCompose('build', serviceNameArgs, context);
+    await runCompose('build', [...context.buildArgs, ...serviceNameArgs], context);
   }
   let args: string[] = [];
   for (const part of context.composeArguments) {

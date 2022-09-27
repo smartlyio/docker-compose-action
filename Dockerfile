@@ -1,0 +1,3 @@
+FROM busybox:latest
+ARG MY_TEST_ARG
+RUN echo MY_TEST_ARG=${MY_TEST_ARG}
