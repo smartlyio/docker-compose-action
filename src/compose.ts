@@ -94,6 +94,7 @@ export async function runCleanup(context: Context): Promise<void> {
     try {
       await runCompose('push', serviceNameArgsArray(context), context);
     } catch (e) {
+      errors.push('ERROR: docker-compose push failed');
       errors.push(`${e}`);
     }
   }
@@ -102,6 +103,7 @@ export async function runCleanup(context: Context): Promise<void> {
     try {
       await runCompose(command, [], context);
     } catch (e) {
+      errors.push(`ERROR: docker-compose ${command} failed`);
       errors.push(`${e}`);
     }
   }
