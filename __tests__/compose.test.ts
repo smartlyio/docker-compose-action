@@ -195,6 +195,73 @@ describe('Main action entrypoint', () => {
     ]);
   });
 
+  test('run action with build and build args', async () => {
+    const projectName = 'test-name';
+    const serviceName = 'test-service';
+    const context: Context = {
+      composeFile: 'docker-compose.ci.yml',
+      serviceName,
+      composeCommand: 'up',
+      composeArguments: ['--abort-on-container-exit'],
+      runCommand: ['ignored'],
+      build: true,
+      buildArgs: ['--build-arg', 'TEST_ARG=1', '--build-arg', 'TEST_ARG_2=2'],
+      push: false,
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
+      isPost: false,
+      projectName: projectName
+    };
+    const containerId = 'abc123';
+
+    const mockExec = mocked(exec);
+    mockExec.mockImplementation(async (cmd, args, options): Promise<number> => {
+      if (options && options.listeners && options.listeners.stdout) {
+        options.listeners.stdout(new Buffer(`${containerId}\n`));
+      }
+      return 0;
+    });
+
+    const output = await runAction(context);
+
+    expect(output).toEqual(containerId);
+
+    const calls = mockExec.mock.calls;
+    expect(calls.length).toBe(4);
+    expect(calls[0]).toEqual([
+      'docker-compose',
+      ['-f', context.composeFile, '-p', projectName, 'pull', serviceName],
+      undefined
+    ]);
+    expect(calls[1]).toEqual([
+      'docker-compose',
+      ['-f', context.composeFile, '-p', projectName, 'build', context.buildArgs, serviceName].flat(),
+      undefined
+    ]);
+    expect(calls[2]).toEqual([
+      'docker-compose',
+      [
+        '-f',
+        context.composeFile,
+        '-p',
+        projectName,
+        'up',
+        '--abort-on-container-exit',
+        serviceName
+      ],
+      undefined
+    ]);
+    const expectedOptions = expect.objectContaining({
+      listeners: expect.objectContaining({
+        stdout: expect.anything()
+      })
+    });
+    expect(calls[3]).toEqual([
+      'docker-compose',
+      ['-f', context.composeFile, '-p', projectName, 'ps', '-aq', serviceName],
+      expectedOptions
+    ]);
+  });
+
   test('run action without serviceName', async () => {
     const projectName = 'test-name';
     const context: Context = {
