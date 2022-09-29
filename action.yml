@@ -40,10 +40,13 @@ inputs:
 
   build-args:
     description: |
-      Build arguments to pass to docker-compose build, as a comma-separated list.
+      Build arguments to pass to docker-compose build, as a newline separated list.
       Requires "build" option to be set when used.
       Values may not contain commas, as a naive string split is used to parse them.
-      e.g. ARG1=value,ARG2=other
+      e.g:
+        build-args: |
+          ARG1=value
+          ARG2=other
     required: false
 
 outputs:

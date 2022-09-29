@@ -68,7 +68,7 @@ export function parseBuildArgs(buildArgsString: string): string[] {
   if (!buildArgsString) {
     return [];
   }
-  const buildArgValues = buildArgsString.split(',');
+  const buildArgValues = buildArgsString.split('\n');
   const buildArgs = [];
   for (const arg of buildArgValues) {
     buildArgs.push(['--build-arg', arg]);
