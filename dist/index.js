@@ -96,7 +96,7 @@ function runAction(context) {
         const serviceNameArgs = serviceNameArgsArray(context);
         yield runCompose('pull', serviceNameArgs, context);
         if (context.build) {
-            yield runCompose('build', serviceNameArgs, context);
+            yield runCompose('build', [...context.buildArgs, ...serviceNameArgs], context);
         }
         let args = [];
         for (const part of context.composeArguments) {
@@ -128,6 +128,7 @@ function runCleanup(context) {
                 yield runCompose('push', serviceNameArgsArray(context), context);
             }
             catch (e) {
+                errors.push('ERROR: docker-compose push failed');
                 errors.push(`${e}`);
             }
         }
@@ -136,6 +137,7 @@ function runCleanup(context) {
                 yield runCompose(command, [], context);
             }
             catch (e) {
+                errors.push(`ERROR: docker-compose ${command} failed`);
                 errors.push(`${e}`);
             }
         }
@@ -187,7 +189,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.loadState = exports.getContext = exports.parsePushOption = exports.createProjectName = exports.parseArray = exports.toBoolean = exports.isPost = void 0;
+exports.loadState = exports.getContext = exports.parseBuildArgs = exports.parsePushOption = exports.createProjectName = exports.parseArray = exports.toBoolean = exports.isPost = void 0;
 const core = __importStar(__nccwpck_require__(186));
 const uuid_1 = __nccwpck_require__(840);
 function isPost() {
@@ -233,9 +235,22 @@ function parsePushOption(pushOption, build) {
     return false;
 }
 exports.parsePushOption = parsePushOption;
+function parseBuildArgs(buildArgsString) {
+    if (!buildArgsString) {
+        return [];
+    }
+    const buildArgValues = buildArgsString.split('\n');
+    const buildArgs = [];
+    for (const arg of buildArgValues) {
+        buildArgs.push(['--build-arg', arg]);
+    }
+    return buildArgs.flat();
+}
+exports.parseBuildArgs = parseBuildArgs;
 function getContext() {
     return __awaiter(this, void 0, void 0, function* () {
         const build = toBoolean(core.getInput('build'));
+        const buildArgsString = core.getInput('build-args');
         const pushOption = core.getInput('push');
         const push = parsePushOption(pushOption, build);
         const post = isPost();
@@ -261,6 +276,7 @@ function getContext() {
             composeArguments: composeArguments,
             runCommand: parseArray(core.getInput('runCommand')),
             build,
+            buildArgs: parseBuildArgs(buildArgsString),
             // Derived context
             postCommand: ['down --remove-orphans --volumes', 'rm -f'],
             projectName: createProjectName(),
@@ -274,6 +290,7 @@ function getContext() {
         core.saveState('composeArguments', context.composeArguments);
         core.saveState('runCommand', context.runCommand);
         core.saveState('build', context.build);
+        core.saveState('buildArgs', buildArgsString);
         core.saveState('postCommand', context.postCommand);
         core.saveState('projectName', context.projectName);
         core.saveState('push', context.push);
@@ -291,6 +308,7 @@ function loadState() {
             composeArguments: JSON.parse(core.getState('composeArguments')),
             runCommand: JSON.parse(core.getState('runCommand')),
             build: toBoolean(core.getState('build')),
+            buildArgs: parseBuildArgs(core.getState('buildArgs')),
             postCommand: JSON.parse(core.getState('postCommand')),
             projectName: core.getState('projectName'),
             push: toBoolean(core.getState('push')),
