@@ -499,8 +499,10 @@ describe('parse docker build args', () => {
       runCommand: [],
       build: false,
       buildArgs: [
-        '--build-arg', 'ARG_NAME=some-value=more-stuff',
-        '--build-arg', 'ANOTHER_ARG=value'
+        '--build-arg',
+        'ARG_NAME=some-value=more-stuff',
+        '--build-arg',
+        'ANOTHER_ARG=value'
       ],
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],

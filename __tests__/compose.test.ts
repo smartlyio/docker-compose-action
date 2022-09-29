@@ -234,7 +234,15 @@ describe('Main action entrypoint', () => {
     ]);
     expect(calls[1]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'build', context.buildArgs, serviceName].flat(),
+      [
+        '-f',
+        context.composeFile,
+        '-p',
+        projectName,
+        'build',
+        context.buildArgs,
+        serviceName
+      ].flat(),
       undefined
     ]);
     expect(calls[2]).toEqual([
