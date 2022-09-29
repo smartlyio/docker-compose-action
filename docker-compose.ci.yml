@@ -1,6 +1,7 @@
 version: "2.3"
 services:
   test:
-    image: busybox:latest
+    build:
+      context: .
     command: ['ls']
     network_mode: "none"

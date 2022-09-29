@@ -229,6 +229,7 @@ describe('get input context', () => {
       composeArguments: ['--abort-on-container-exit'],
       runCommand: [],
       build: false,
+      buildArgs: [],
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
@@ -300,6 +301,7 @@ describe('get input context', () => {
       composeArguments: ['--abort-on-container-exit'],
       runCommand: [],
       build: false,
+      buildArgs: [],
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       projectName: projectName,
@@ -369,6 +371,139 @@ describe('get input context', () => {
       composeArguments: [],
       runCommand: [],
       build: false,
+      buildArgs: [],
+      push: false,
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
+      projectName: projectName,
+      isPost: false
+    };
+    expect(await getContext()).toEqual(expected);
+  });
+});
+
+describe('parse docker build args', () => {
+  test('test empty build args', async () => {
+    const org = 'smartlyio';
+    const repo = 'docker-compose-action';
+    const job = 'test-job';
+    const runId = 5;
+    const uuid = '5cbc67f0-1b89-4402-90a1-6c40d19bd745';
+    process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
+    process.env['GITHUB_JOB'] = job;
+    process.env['GITHUB_RUN_ID'] = `${runId}`;
+    mocked(uuidv4).mockReturnValue(uuid);
+    const projectName = `${org}-${repo}-${job}-${runId}-${uuid}`;
+
+    const inputs: Record<string, string> = {
+      composeFile: 'docker-compose.ci.yml',
+      serviceName: 'test',
+      composeCommand: 'up',
+      composeArguments: '--abort-on-container-exit',
+      runCommand: '',
+      build: 'false',
+      'build-args': '',
+      push: 'on:push'
+    };
+    mocked(getInput).mockImplementation(name => {
+      return inputs[name];
+    });
+
+    const expected: Context = {
+      composeFile: inputs.composeFile,
+      serviceName: 'test',
+      composeCommand: 'up',
+      composeArguments: ['--abort-on-container-exit'],
+      runCommand: [],
+      build: false,
+      buildArgs: [],
+      push: false,
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
+      projectName: projectName,
+      isPost: false
+    };
+    expect(await getContext()).toEqual(expected);
+  });
+
+  test('test single build arg', async () => {
+    const org = 'smartlyio';
+    const repo = 'docker-compose-action';
+    const job = 'test-job';
+    const runId = 5;
+    const uuid = '5cbc67f0-1b89-4402-90a1-6c40d19bd745';
+    process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
+    process.env['GITHUB_JOB'] = job;
+    process.env['GITHUB_RUN_ID'] = `${runId}`;
+    mocked(uuidv4).mockReturnValue(uuid);
+    const projectName = `${org}-${repo}-${job}-${runId}-${uuid}`;
+
+    const inputs: Record<string, string> = {
+      composeFile: 'docker-compose.ci.yml',
+      serviceName: 'test',
+      composeCommand: 'up',
+      composeArguments: '--abort-on-container-exit',
+      runCommand: '',
+      build: 'false',
+      'build-args': 'ARG_NAME=some-value=more-stuff',
+      push: 'on:push'
+    };
+    mocked(getInput).mockImplementation(name => {
+      return inputs[name];
+    });
+
+    const expected: Context = {
+      composeFile: inputs.composeFile,
+      serviceName: 'test',
+      composeCommand: 'up',
+      composeArguments: ['--abort-on-container-exit'],
+      runCommand: [],
+      build: false,
+      buildArgs: ['--build-arg', 'ARG_NAME=some-value=more-stuff'],
+      push: false,
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
+      projectName: projectName,
+      isPost: false
+    };
+    expect(await getContext()).toEqual(expected);
+  });
+  test('test multiple build args', async () => {
+    const org = 'smartlyio';
+    const repo = 'docker-compose-action';
+    const job = 'test-job';
+    const runId = 5;
+    const uuid = '5cbc67f0-1b89-4402-90a1-6c40d19bd745';
+    process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
+    process.env['GITHUB_JOB'] = job;
+    process.env['GITHUB_RUN_ID'] = `${runId}`;
+    mocked(uuidv4).mockReturnValue(uuid);
+    const projectName = `${org}-${repo}-${job}-${runId}-${uuid}`;
+
+    const inputs: Record<string, string> = {
+      composeFile: 'docker-compose.ci.yml',
+      serviceName: 'test',
+      composeCommand: 'up',
+      composeArguments: '--abort-on-container-exit',
+      runCommand: '',
+      build: 'false',
+      'build-args': 'ARG_NAME=some-value=more-stuff\nANOTHER_ARG=value',
+      push: 'on:push'
+    };
+    mocked(getInput).mockImplementation(name => {
+      return inputs[name];
+    });
+
+    const expected: Context = {
+      composeFile: inputs.composeFile,
+      serviceName: 'test',
+      composeCommand: 'up',
+      composeArguments: ['--abort-on-container-exit'],
+      runCommand: [],
+      build: false,
+      buildArgs: [
+        '--build-arg',
+        'ARG_NAME=some-value=more-stuff',
+        '--build-arg',
+        'ANOTHER_ARG=value'
+      ],
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       projectName: projectName,
