@@ -62,4 +62,23 @@ jobs:
         runCommand: ls
         build: "true"
         push: "false"
-        build-args: MY_TEST_ARG=some-value
+        build-args: |
+          MY_TEST_ARG=some-value
+          OTHER_ARG=2
+
+  release:
+    runs-on: ubuntu-20.04
+    name: "Build and release action"
+    needs: [build, test]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Configure git
+        uses: smartlyio/github-actions@git-init-userinfo-v1
+      - name: Release flow
+        uses: smartlyio/github-actions@release-action-node-v1
+        with:
+          dry_run: true
+          token: "${{ secrets.GITHUB_TOKEN }}"

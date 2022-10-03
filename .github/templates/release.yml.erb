@@ -14,45 +14,13 @@ jobs:
     name: "Build and release action"
     needs: [build, test]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
           persist-credentials: true
-      - name: Set Node.js 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
       - name: Configure git
-        run: |
-          git config user.name "Github Action"
-          git config user.email "bot@github-actions"
-      @import smartlyio/steps/util/get_next_semantic_version
-      @import smartlyio/steps/util/check_branch_behind (is_base_ref: true, remote_update: true)
-      - name: Create release
-        if: steps.check_branch_behind.outputs.BRANCH_UP_TO_DATE == 'true' && steps.version_check.outputs.continue_release == 'true'
-        run: |
-          npm install
-          npm version ${{ steps.version_check.outputs.version }}
-          git push && git push --tags
-      - name: Update action without release
-        if: steps.check_branch_behind.outputs.BRANCH_UP_TO_DATE == 'true' && steps.version_check.outputs.continue_release == 'false'
-        run: |
-          npm install
-          npm run version
-          git_changes="$(git status --porcelain -- dist || true)"
-          if [ -n "$git_changes" ]; then
-            git add -- dist
-            git commit -m "Update compiled action"
-            git push
-          fi
-      - name: Update release branch
-        if: steps.check_branch_behind.outputs.BRANCH_UP_TO_DATE == 'true' && steps.version_check.outputs.continue_release == 'true'
-        run: |
-          package_version="$(jq -r .version < package.json)"
-          release_branch="v${package_version//.*/}"
-          upstream="origin/${release_branch}"
-
-          git checkout -b "${release_branch}"
-          git branch --set-upstream-to="${upstream}"
-
-          git push origin "${release_branch}"
+        uses: smartlyio/github-actions@git-init-userinfo-v1
+      - name: Release flow
+        uses: smartlyio/github-actions@release-action-node-v1
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
