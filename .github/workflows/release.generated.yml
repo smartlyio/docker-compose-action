@@ -62,120 +62,22 @@ jobs:
         runCommand: ls
         build: "true"
         push: "false"
-        build-args: MY_TEST_ARG=some-value
+        build-args: |
+          MY_TEST_ARG=some-value
+          OTHER_ARG=2
 
   release:
     runs-on: ubuntu-20.04
     name: "Build and release action"
     needs: [build, test]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
           persist-credentials: true
-      - name: Set Node.js 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
       - name: Configure git
-        run: |
-          git config user.name "Github Action"
-          git config user.email "bot@github-actions"
-      - name: Get git base branch
-        id: get_base_branch
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          BASE_BRANCH="$(gh api "repos/$GITHUB_REPOSITORY" | jq -r .default_branch)"
-          echo ::set-output name=git_base_branch::"$BASE_BRANCH"
-          echo GIT_BASE_BRANCH="$BASE_BRANCH" >> "$GITHUB_ENV"
-      - name: Calculate PR filters
-        id: filters
-        run: |
-          last_tag_date=$(git log -1 --tags --no-walk --pretty="format:%cI")
-          start_date=$(date -Is -d "$last_tag_date")
-          echo ::set-output name=start_date::"$start_date"
-      - name: Get PR labels
-        uses: octokit/graphql-action@v2.x
-        id: get_latest_prs
+        uses: smartlyio/github-actions@git-init-userinfo-v1
+      - name: Release flow
+        uses: smartlyio/github-actions@release-action-node-v1
         with:
-          query: |
-            query($filter:String!) {
-              search(query:$filter, type: ISSUE, last: 100) {
-                edges {
-                  node {
-                    ... on PullRequest {
-                      number
-                      mergedAt
-                      labels (first: 100) {
-                        nodes {
-                          name
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          filter: repo:${{ github.repository }} is:pr base:${{ steps.get_base_branch.outputs.git_base_branch }} merged:>${{ steps.filters.outputs.start_date }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Get version being bumped
-        id: version_check
-        env:
-          PR_DATA: "${{ steps.get_latest_prs.outputs.data }}"
-        run: |
-          echo "$PR_DATA"
-          version=$(echo "$PR_DATA" | grep -m1 -oi major || echo "$PR_DATA" | grep -m1 -oi minor || echo "$PR_DATA" | grep -m1 -oi patch || echo "")
-          version_lower=${version,,}
-          echo ::set-output name=version::"$version_lower"
-          if [ -z "$version" ]; then
-            echo ::set-output name=continue_release::false
-          else
-            echo ::set-output name=continue_release::true
-          fi
-      - name: Show version being bumped
-        if: steps.version_check.outputs.continue_release == 'true'
-        run: echo "Based on tags, we're updating ${{ steps.version_check.outputs.VERSION }} version!"
-      - name: Check if at head of branch
-        id: check_branch_behind
-        run: |
-          git remote update
-          local=${{ github.sha }}
-          remote=$(git rev-parse origin/master)
-          echo "$remote"
-          if [ "$local" == "$remote" ]; then
-            echo "Looks like we're at the head of the branch."
-            echo ::set-output name=BRANCH_UP_TO_DATE::true
-          else
-            echo "Local branch is not up to date with remote. Exiting."
-            echo ::set-output name=BRANCH_UP_TO_DATE::false
-          fi
-      - name: Create release
-        if: steps.check_branch_behind.outputs.BRANCH_UP_TO_DATE == 'true' && steps.version_check.outputs.continue_release == 'true'
-        run: |
-          npm install
-          npm version ${{ steps.version_check.outputs.version }}
-          git push && git push --tags
-      - name: Update action without release
-        if: steps.check_branch_behind.outputs.BRANCH_UP_TO_DATE == 'true' && steps.version_check.outputs.continue_release == 'false'
-        run: |
-          npm install
-          npm run version
-          git_changes="$(git status --porcelain -- dist || true)"
-          if [ -n "$git_changes" ]; then
-            git add -- dist
-            git commit -m "Update compiled action"
-            git push
-          fi
-      - name: Update release branch
-        if: steps.check_branch_behind.outputs.BRANCH_UP_TO_DATE == 'true' && steps.version_check.outputs.continue_release == 'true'
-        run: |
-          package_version="$(jq -r .version < package.json)"
-          release_branch="v${package_version//.*/}"
-          upstream="origin/${release_branch}"
-
-          git checkout -b "${release_branch}"
-          git branch --set-upstream-to="${upstream}"
-
-          git push origin "${release_branch}"
+          token: "${{ secrets.GITHUB_TOKEN }}"
