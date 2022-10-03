@@ -8,3 +8,20 @@ jobs:
   @import ./jobs/build
 
   @import ./jobs/test
+
+  release:
+    runs-on: <%= ubuntu_version %>
+    name: "Build and release action"
+    needs: [build, test]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Configure git
+        uses: smartlyio/github-actions@git-init-userinfo-v1
+      - name: Release flow
+        uses: smartlyio/github-actions@release-action-node-v1
+        with:
+          dry_run: true
+          token: "${{ secrets.GITHUB_TOKEN }}"
