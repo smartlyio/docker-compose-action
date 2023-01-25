@@ -21,7 +21,7 @@ describe('run docker-compose', () => {
     const command = 'build';
     const projectName = 'test-name';
     const context: Context = {
-      composeFile: 'docker-compose.ci.yml',
+      composeFiles: ['docker-compose.ci.yml'],
       serviceName: 'test',
       composeCommand: 'up',
       composeArguments: ['--abort-on-container-exit'],
@@ -41,7 +41,45 @@ describe('run docker-compose', () => {
     expect(calls.length).toBe(1);
     const expectedArgs: string[] = [
       '-f',
-      context.composeFile,
+      context.composeFiles[0],
+      '-p',
+      projectName,
+      command
+    ];
+    expect(mockExec).toHaveBeenCalledWith(
+      'docker-compose',
+      expectedArgs,
+      undefined
+    );
+  });
+
+  test('with two docker-compose files', async () => {
+    const command = 'build';
+    const projectName = 'test-name';
+    const context: Context = {
+      composeFiles: ['docker-compose.yml', 'docker-compose.ci.yml'],
+      serviceName: 'test',
+      composeCommand: 'up',
+      composeArguments: ['--abort-on-container-exit'],
+      runCommand: [],
+      build: true,
+      buildArgs: [],
+      push: false,
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
+      isPost: false,
+      projectName: projectName
+    };
+
+    await runCompose(command, [], context);
+
+    const mockExec = mocked(exec);
+    const calls = mockExec.mock.calls;
+    expect(calls.length).toBe(1);
+    const expectedArgs: string[] = [
+      '-f',
+      context.composeFiles[0],
+      '-f',
+      context.composeFiles[1],
       '-p',
       projectName,
       command
@@ -57,7 +95,7 @@ describe('run docker-compose', () => {
     const command = '\n\n\ndown \n --remove-orphans  --volumes  ';
     const projectName = 'test-name';
     const context: Context = {
-      composeFile: 'docker-compose.ci.yml',
+      composeFiles: ['docker-compose.ci.yml'],
       serviceName: 'test',
       composeCommand: 'up',
       composeArguments: ['--abort-on-container-exit'],
@@ -75,7 +113,7 @@ describe('run docker-compose', () => {
     const mockExec = mocked(exec);
     const expectedArgs: string[] = [
       '-f',
-      context.composeFile,
+      context.composeFiles[0],
       '-p',
       projectName,
       'down',
@@ -94,7 +132,7 @@ describe('run docker-compose', () => {
     const args = ['--remove-orphans', '--volumes'];
     const projectName = 'test-name';
     const context: Context = {
-      composeFile: 'docker-compose.ci.yml',
+      composeFiles: ['docker-compose.ci.yml'],
       serviceName: 'test',
       composeCommand: 'up',
       composeArguments: ['--abort-on-container-exit'],
@@ -112,7 +150,7 @@ describe('run docker-compose', () => {
     const mockExec = mocked(exec);
     const expectedArgs: string[] = [
       '-f',
-      context.composeFile,
+      context.composeFiles[0],
       '-p',
       projectName,
       'down',
@@ -132,7 +170,7 @@ describe('Main action entrypoint', () => {
     const projectName = 'test-name';
     const serviceName = 'test-service';
     const context: Context = {
-      composeFile: 'docker-compose.ci.yml',
+      composeFiles: ['docker-compose.ci.yml'],
       serviceName,
       composeCommand: 'up',
       composeArguments: ['--abort-on-container-exit'],
@@ -162,19 +200,19 @@ describe('Main action entrypoint', () => {
     expect(calls.length).toBe(4);
     expect(calls[0]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'pull', serviceName],
+      ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
       undefined
     ]);
     expect(calls[1]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'build', serviceName],
+      ['-f', context.composeFiles[0], '-p', projectName, 'build', serviceName],
       undefined
     ]);
     expect(calls[2]).toEqual([
       'docker-compose',
       [
         '-f',
-        context.composeFile,
+        context.composeFiles[0],
         '-p',
         projectName,
         'up',
@@ -190,7 +228,15 @@ describe('Main action entrypoint', () => {
     });
     expect(calls[3]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'ps', '-aq', serviceName],
+      [
+        '-f',
+        context.composeFiles[0],
+        '-p',
+        projectName,
+        'ps',
+        '-aq',
+        serviceName
+      ],
       expectedOptions
     ]);
   });
@@ -199,7 +245,7 @@ describe('Main action entrypoint', () => {
     const projectName = 'test-name';
     const serviceName = 'test-service';
     const context: Context = {
-      composeFile: 'docker-compose.ci.yml',
+      composeFiles: ['docker-compose.ci.yml'],
       serviceName,
       composeCommand: 'up',
       composeArguments: ['--abort-on-container-exit'],
@@ -229,14 +275,14 @@ describe('Main action entrypoint', () => {
     expect(calls.length).toBe(4);
     expect(calls[0]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'pull', serviceName],
+      ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
       undefined
     ]);
     expect(calls[1]).toEqual([
       'docker-compose',
       [
         '-f',
-        context.composeFile,
+        context.composeFiles[0],
         '-p',
         projectName,
         'build',
@@ -249,7 +295,7 @@ describe('Main action entrypoint', () => {
       'docker-compose',
       [
         '-f',
-        context.composeFile,
+        context.composeFiles[0],
         '-p',
         projectName,
         'up',
@@ -265,7 +311,15 @@ describe('Main action entrypoint', () => {
     });
     expect(calls[3]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'ps', '-aq', serviceName],
+      [
+        '-f',
+        context.composeFiles[0],
+        '-p',
+        projectName,
+        'ps',
+        '-aq',
+        serviceName
+      ],
       expectedOptions
     ]);
   });
@@ -273,7 +327,7 @@ describe('Main action entrypoint', () => {
   test('run action without serviceName', async () => {
     const projectName = 'test-name';
     const context: Context = {
-      composeFile: 'docker-compose.ci.yml',
+      composeFiles: ['docker-compose.ci.yml'],
       serviceName: null,
       composeCommand: 'up',
       composeArguments: ['--abort-on-container-exit'],
@@ -303,19 +357,19 @@ describe('Main action entrypoint', () => {
     expect(calls.length).toBe(4);
     expect(calls[0]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'pull'],
+      ['-f', context.composeFiles[0], '-p', projectName, 'pull'],
       undefined
     ]);
     expect(calls[1]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'build'],
+      ['-f', context.composeFiles[0], '-p', projectName, 'build'],
       undefined
     ]);
     expect(calls[2]).toEqual([
       'docker-compose',
       [
         '-f',
-        context.composeFile,
+        context.composeFiles[0],
         '-p',
         projectName,
         'up',
@@ -330,7 +384,7 @@ describe('Main action entrypoint', () => {
     });
     expect(calls[3]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'ps', '-aq'],
+      ['-f', context.composeFiles[0], '-p', projectName, 'ps', '-aq'],
       expectedOptions
     ]);
   });
@@ -340,7 +394,7 @@ describe('Main action entrypoint', () => {
     const serviceName = 'test-service';
     const runCommand = ['bash', './run-my-script.sh'];
     const context: Context = {
-      composeFile: 'docker-compose.ci.yml',
+      composeFiles: ['docker-compose.ci.yml'],
       serviceName,
       composeCommand: 'run',
       composeArguments: ['--custom-arg'],
@@ -368,7 +422,7 @@ describe('Main action entrypoint', () => {
     expect(calls.length).toBe(3);
     const expectedArgs = [
       '-f',
-      context.composeFile,
+      context.composeFiles[0],
       '-p',
       projectName,
       'run',
@@ -379,7 +433,7 @@ describe('Main action entrypoint', () => {
     ];
     expect(calls[0]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'pull', serviceName],
+      ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
       undefined
     ]);
     expect(calls[1]).toEqual(['docker-compose', expectedArgs, undefined]);
@@ -390,7 +444,15 @@ describe('Main action entrypoint', () => {
     });
     expect(calls[2]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'ps', '-aq', serviceName],
+      [
+        '-f',
+        context.composeFiles[0],
+        '-p',
+        projectName,
+        'ps',
+        '-aq',
+        serviceName
+      ],
       expectedOptions
     ]);
   });
@@ -400,7 +462,7 @@ describe('Main action entrypoint', () => {
     const serviceName = 'test-service';
     const runCommand = ['bash', './run-my-script.sh'];
     const context: Context = {
-      composeFile: 'docker-compose.ci.yml',
+      composeFiles: ['docker-compose.ci.yml'],
       serviceName,
       composeCommand: 'run',
       composeArguments: ['--custom-arg'],
@@ -439,7 +501,7 @@ describe('Post-action entrypoint', () => {
     const projectName = 'test-name';
     const serviceName = 'test-service';
     const context: Context = {
-      composeFile: 'docker-compose.ci.yml',
+      composeFiles: ['docker-compose.ci.yml'],
       serviceName,
       composeCommand: 'up',
       composeArguments: ['--custom-arg'],
@@ -460,14 +522,14 @@ describe('Post-action entrypoint', () => {
     expect(calls.length).toBe(3);
     expect(calls[0]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'push', serviceName],
+      ['-f', context.composeFiles[0], '-p', projectName, 'push', serviceName],
       undefined
     ]);
     expect(calls[1]).toEqual([
       'docker-compose',
       [
         '-f',
-        context.composeFile,
+        context.composeFiles[0],
         '-p',
         projectName,
         'down',
@@ -478,7 +540,7 @@ describe('Post-action entrypoint', () => {
     ]);
     expect(calls[2]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'rm', '-f'],
+      ['-f', context.composeFiles[0], '-p', projectName, 'rm', '-f'],
       undefined
     ]);
   });
@@ -487,7 +549,7 @@ describe('Post-action entrypoint', () => {
     const projectName = 'test-name';
     const serviceName = 'test-service';
     const context: Context = {
-      composeFile: 'docker-compose.ci.yml',
+      composeFiles: ['docker-compose.ci.yml'],
       serviceName,
       composeCommand: 'up',
       composeArguments: ['--custom-arg'],
@@ -510,7 +572,7 @@ describe('Post-action entrypoint', () => {
       'docker-compose',
       [
         '-f',
-        context.composeFile,
+        context.composeFiles[0],
         '-p',
         projectName,
         'down',
@@ -521,7 +583,7 @@ describe('Post-action entrypoint', () => {
     ]);
     expect(calls[1]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'rm', '-f'],
+      ['-f', context.composeFiles[0], '-p', projectName, 'rm', '-f'],
       undefined
     ]);
   });
@@ -530,7 +592,7 @@ describe('Post-action entrypoint', () => {
     const projectName = 'test-name';
     const serviceName = 'test-service';
     const context: Context = {
-      composeFile: 'docker-compose.ci.yml',
+      composeFiles: ['docker-compose.ci.yml'],
       serviceName,
       composeCommand: 'up',
       composeArguments: ['--custom-arg'],
@@ -559,14 +621,14 @@ describe('Post-action entrypoint', () => {
     expect(calls.length).toBe(3);
     expect(calls[0]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'push', serviceName],
+      ['-f', context.composeFiles[0], '-p', projectName, 'push', serviceName],
       undefined
     ]);
     expect(calls[1]).toEqual([
       'docker-compose',
       [
         '-f',
-        context.composeFile,
+        context.composeFiles[0],
         '-p',
         projectName,
         'down',
@@ -577,7 +639,7 @@ describe('Post-action entrypoint', () => {
     ]);
     expect(calls[2]).toEqual([
       'docker-compose',
-      ['-f', context.composeFile, '-p', projectName, 'rm', '-f'],
+      ['-f', context.composeFiles[0], '-p', projectName, 'rm', '-f'],
       undefined
     ]);
   });
