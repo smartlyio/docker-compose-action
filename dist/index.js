@@ -51,7 +51,11 @@ class ComposeError extends Error {
 exports.ComposeError = ComposeError;
 function runCompose(command, args, context, execOptions) {
     return __awaiter(this, void 0, void 0, function* () {
-        const composeArgs = ['-f', context.composeFile, '-p', context.projectName];
+        const composeArgs = [];
+        for (const part of context.composeFiles) {
+            composeArgs.push('-f', part);
+        }
+        composeArgs.push('-p', context.projectName);
         for (const part of command.trim().split(/\s+/)) {
             composeArgs.push(part);
         }
@@ -270,7 +274,7 @@ function getContext() {
             composeArguments.pop();
         }
         const context = {
-            composeFile: core.getInput('composeFile'),
+            composeFiles: core.getMultilineInput('composeFile'),
             serviceName: serviceName === '' ? null : serviceName,
             composeCommand,
             composeArguments: composeArguments,
@@ -284,7 +288,7 @@ function getContext() {
             isPost: post
         };
         core.saveState('isPost', post);
-        core.saveState('composeFile', context.composeFile);
+        core.saveState('composeFiles', context.composeFiles);
         core.saveState('serviceName', context.serviceName);
         core.saveState('composeCommand', context.composeCommand);
         core.saveState('composeArguments', context.composeArguments);
@@ -302,7 +306,7 @@ function loadState() {
     return __awaiter(this, void 0, void 0, function* () {
         const post = isPost();
         const context = {
-            composeFile: core.getState('composeFile'),
+            composeFiles: JSON.parse(core.getState('composeFiles')),
             serviceName: core.getState('serviceName'),
             composeCommand: core.getState('composeCommand'),
             composeArguments: JSON.parse(core.getState('composeArguments')),
