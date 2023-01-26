@@ -17,7 +17,7 @@ Uses the following github context environment variables to generate unique docke
 
 | Name     | default  | required | description |
 |----------|----------|----------|-------------|
-| composeFile | `docker-compose.yml` | no | The path to the docker-compose file to use, realtive to the workspace. |
+| composeFile | `docker-compose.yml` | no | The path to the docker-compose file(s) to use, relative to the workspace. In multiple docker-compose files case, add them as multiline yaml value using the `|` notation, one file per file. |
 | serviceName | | yes | The name of the service to use defined in the compose file. |
 | composeCommand | `up` | no | One of `up` or `run` as the main compose command to execute. |
 | composeArguments | `--abort-on-container-exit` | no | Option flags passed to the compose command. |
@@ -67,7 +67,9 @@ jobs:
       - name: Test with docker-compose
         uses: smartlyio/docker-compose-action@v1
         with:
-          composeFile: docker-compose.ci.yml
+          composeFile: |
+            docker-compose.yml
+            docker-compose.ci.yml
           serviceName: test
           build: true
           push: "on:push"

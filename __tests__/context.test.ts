@@ -9,7 +9,13 @@ import {
   loadState
 } from '../src/context';
 import {mocked} from 'jest-mock';
-import {getInput, saveState, getState, info} from '@actions/core';
+import {
+  getInput,
+  getMultilineInput,
+  saveState,
+  getState,
+  info
+} from '@actions/core';
 import {v4 as uuidv4} from 'uuid';
 
 jest.mock('uuid', () => ({
@@ -18,6 +24,7 @@ jest.mock('uuid', () => ({
 
 jest.mock('@actions/core', () => ({
   getInput: jest.fn(),
+  getMultilineInput: jest.fn(),
   saveState: jest.fn(),
   getState: jest.fn(),
   info: jest.fn()
@@ -211,6 +218,9 @@ describe('get input context', () => {
     mocked(getInput).mockImplementation(name => {
       return inputs[name];
     });
+    mocked(getMultilineInput).mockImplementation(name => {
+      return inputs[name].split('\n');
+    });
     mocked(saveState).mockImplementation((name, value) => {
       if (typeof value === 'string') {
         savedState[name] = value;
@@ -223,7 +233,7 @@ describe('get input context', () => {
     });
 
     const expectedContext: Context = {
-      composeFile: 'docker-compose.ci.yml',
+      composeFiles: ['docker-compose.ci.yml'],
       serviceName: 'test',
       composeCommand: 'up',
       composeArguments: ['--abort-on-container-exit'],
@@ -265,6 +275,9 @@ describe('get input context', () => {
     mocked(getInput).mockImplementation(name => {
       return inputs[name];
     });
+    mocked(getMultilineInput).mockImplementation(name => {
+      return inputs[name].split('\n');
+    });
 
     await expect(getContext()).rejects.toThrowError(/composeCommand not in/);
   });
@@ -293,9 +306,12 @@ describe('get input context', () => {
     mocked(getInput).mockImplementation(name => {
       return inputs[name];
     });
+    mocked(getMultilineInput).mockImplementation(name => {
+      return inputs[name].split('\n');
+    });
 
     const expected: Context = {
-      composeFile: inputs.composeFile,
+      composeFiles: [inputs.composeFile],
       serviceName: null,
       composeCommand: 'up',
       composeArguments: ['--abort-on-container-exit'],
@@ -333,6 +349,9 @@ describe('get input context', () => {
     mocked(getInput).mockImplementation(name => {
       return inputs[name];
     });
+    mocked(getMultilineInput).mockImplementation(name => {
+      return inputs[name].split('\n');
+    });
 
     await expect(getContext()).rejects.toThrowError(
       'serviceName must be provided when composeCommand is "run"'
@@ -363,9 +382,12 @@ describe('get input context', () => {
     mocked(getInput).mockImplementation(name => {
       return inputs[name];
     });
+    mocked(getMultilineInput).mockImplementation(name => {
+      return inputs[name].split('\n');
+    });
 
     const expected: Context = {
-      composeFile: inputs.composeFile,
+      composeFiles: [inputs.composeFile],
       serviceName: 'test',
       composeCommand: 'run',
       composeArguments: [],
@@ -407,9 +429,12 @@ describe('parse docker build args', () => {
     mocked(getInput).mockImplementation(name => {
       return inputs[name];
     });
+    mocked(getMultilineInput).mockImplementation(name => {
+      return inputs[name].split('\n');
+    });
 
     const expected: Context = {
-      composeFile: inputs.composeFile,
+      composeFiles: [inputs.composeFile],
       serviceName: 'test',
       composeCommand: 'up',
       composeArguments: ['--abort-on-container-exit'],
@@ -449,9 +474,12 @@ describe('parse docker build args', () => {
     mocked(getInput).mockImplementation(name => {
       return inputs[name];
     });
+    mocked(getMultilineInput).mockImplementation(name => {
+      return inputs[name].split('\n');
+    });
 
     const expected: Context = {
-      composeFile: inputs.composeFile,
+      composeFiles: [inputs.composeFile],
       serviceName: 'test',
       composeCommand: 'up',
       composeArguments: ['--abort-on-container-exit'],
@@ -490,9 +518,12 @@ describe('parse docker build args', () => {
     mocked(getInput).mockImplementation(name => {
       return inputs[name];
     });
+    mocked(getMultilineInput).mockImplementation(name => {
+      return inputs[name].split('\n');
+    });
 
     const expected: Context = {
-      composeFile: inputs.composeFile,
+      composeFiles: [inputs.composeFile],
       serviceName: 'test',
       composeCommand: 'up',
       composeArguments: ['--abort-on-container-exit'],

@@ -8,7 +8,7 @@ export function isPost(): boolean {
 
 export interface Context {
   // Action inputs
-  composeFile: string;
+  composeFiles: string[];
   serviceName: string | null;
   composeCommand: string;
   composeArguments: string[];
@@ -109,7 +109,7 @@ export async function getContext(): Promise<Context> {
   }
 
   const context: Context = {
-    composeFile: core.getInput('composeFile'),
+    composeFiles: core.getMultilineInput('composeFile'),
     serviceName: serviceName === '' ? null : serviceName,
     composeCommand,
     composeArguments: composeArguments,
@@ -124,7 +124,7 @@ export async function getContext(): Promise<Context> {
   };
 
   core.saveState('isPost', post);
-  core.saveState('composeFile', context.composeFile);
+  core.saveState('composeFiles', context.composeFiles);
   core.saveState('serviceName', context.serviceName);
   core.saveState('composeCommand', context.composeCommand);
   core.saveState('composeArguments', context.composeArguments);
@@ -141,7 +141,7 @@ export async function getContext(): Promise<Context> {
 export async function loadState(): Promise<Context> {
   const post: boolean = isPost();
   const context: Context = {
-    composeFile: core.getState('composeFile'),
+    composeFiles: JSON.parse(core.getState('composeFiles')),
     serviceName: core.getState('serviceName'),
     composeCommand: core.getState('composeCommand'),
     composeArguments: JSON.parse(core.getState('composeArguments')),
