@@ -88,7 +88,10 @@ export async function runAction(context: Context): Promise<string | null> {
   try {
     const exitCode = await runCompose(context.composeCommand, args, context);
     if (exitCode !== 0) {
-      throw new ComposeError(`docker-compose exited with code ${exitCode}`, null);
+      throw new ComposeError(
+        `docker-compose exited with code ${exitCode}`,
+        null
+      );
     }
   } catch (e) {
     const containerId = await getContainerId(context);
