@@ -62,7 +62,7 @@ function runCompose(command, args, context, execOptions) {
         for (const part of args) {
             composeArgs.push(part);
         }
-        yield exec.exec('docker-compose', composeArgs, execOptions);
+        return yield exec.exec('docker-compose', composeArgs, execOptions);
     });
 }
 exports.runCompose = runCompose;
@@ -113,7 +113,10 @@ function runAction(context) {
             }
         }
         try {
-            yield runCompose(context.composeCommand, args, context);
+            const exitCode = yield runCompose(context.composeCommand, args, context);
+            if (exitCode !== 0) {
+                throw new ComposeError(`docker-compose exited with code ${exitCode}`, null);
+            }
         }
         catch (e) {
             const containerId = yield getContainerId(context);
