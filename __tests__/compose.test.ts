@@ -308,19 +308,78 @@ describe('Main action entrypoint', () => {
     const containerId = 'abc123';
 
     const mockExec = mocked(exec);
-    mockExec.mockImplementation(async (cmd, args, options): Promise<number> => {
-      if (args && args.includes('up')) {
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
+        return 0;
+      }
+    );
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
+        return 0;
+      }
+    );
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
         return 1;
       }
-      if (options && options.listeners && options.listeners.stdout) {
-        options.listeners.stdout(new Buffer(`${containerId}\n`));
+    );
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
+        if (options && options.listeners && options.listeners.stdout) {
+          options.listeners.stdout(new Buffer(`${containerId}\n`));
+        }
+        return 0;
       }
-      return 0;
-    });
+    );
 
-    expect(runAction(context)).rejects.toThrow(
+    await expect(runAction(context)).rejects.toThrow(
       new ComposeError('Error: docker-compose exited with code 1', containerId)
     );
+
+    const calls = mockExec.mock.calls;
+    console.log(calls);
+    expect(calls.length).toBe(4);
+    expect(calls[0]).toEqual([
+      'docker-compose',
+      ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
+      undefined
+    ]);
+    expect(calls[1]).toEqual([
+      'docker-compose',
+      ['-f', context.composeFiles[0], '-p', projectName, 'build', serviceName],
+      undefined
+    ]);
+    expect(calls[2]).toEqual([
+      'docker-compose',
+      [
+        '-f',
+        context.composeFiles[0],
+        '-p',
+        projectName,
+        'up',
+        '--abort-on-container-exit',
+        serviceName
+      ],
+      undefined
+    ]);
+    const expectedOptions = expect.objectContaining({
+      listeners: expect.objectContaining({
+        stdout: expect.anything()
+      })
+    });
+    expect(calls[3]).toEqual([
+      'docker-compose',
+      [
+        '-f',
+        context.composeFiles[0],
+        '-p',
+        projectName,
+        'ps',
+        '-aq',
+        serviceName
+      ],
+      expectedOptions
+    ]);
   });
 
   test('run action with build and build args', async () => {
