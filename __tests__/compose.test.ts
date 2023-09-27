@@ -10,6 +10,7 @@ jest.mock('@actions/exec', () => ({
 const OLD_ENV = process.env;
 beforeEach(() => {
   process.env = {...OLD_ENV};
+  mocked(exec).mockReset();
 });
 
 afterEach(() => {
@@ -34,9 +35,50 @@ describe('run docker-compose', () => {
       projectName: projectName
     };
 
+    const mockExec = mocked(exec);
+    mockExec.mockResolvedValue(0);
+
     await runCompose(command, [], context);
 
+    const calls = mockExec.mock.calls;
+    expect(calls.length).toBe(1);
+    const expectedArgs: string[] = [
+      '-f',
+      context.composeFiles[0],
+      '-p',
+      projectName,
+      command
+    ];
+    expect(mockExec).toHaveBeenCalledWith(
+      'docker-compose',
+      expectedArgs,
+      undefined
+    );
+  });
+
+  test('exec returns non-zero code', async () => {
+    const command = 'build';
+    const projectName = 'test-name';
+    const context: Context = {
+      composeFiles: ['docker-compose.ci.yml'],
+      serviceName: 'test',
+      composeCommand: 'up',
+      composeArguments: ['--abort-on-container-exit'],
+      runCommand: [],
+      build: true,
+      buildArgs: [],
+      push: false,
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
+      isPost: false,
+      projectName: projectName
+    };
+
     const mockExec = mocked(exec);
+    mockExec.mockResolvedValue(1);
+
+    const returnValue = await runCompose(command, [], context);
+
+    expect(returnValue).toBe(1);
     const calls = mockExec.mock.calls;
     expect(calls.length).toBe(1);
     const expectedArgs: string[] = [
@@ -70,9 +112,11 @@ describe('run docker-compose', () => {
       projectName: projectName
     };
 
+    const mockExec = mocked(exec);
+    mockExec.mockResolvedValue(0);
+
     await runCompose(command, [], context);
 
-    const mockExec = mocked(exec);
     const calls = mockExec.mock.calls;
     expect(calls.length).toBe(1);
     const expectedArgs: string[] = [
@@ -108,9 +152,11 @@ describe('run docker-compose', () => {
       projectName: projectName
     };
 
+    const mockExec = mocked(exec);
+    mockExec.mockResolvedValue(0);
+
     await runCompose(command, [], context);
 
-    const mockExec = mocked(exec);
     const expectedArgs: string[] = [
       '-f',
       context.composeFiles[0],
@@ -145,9 +191,11 @@ describe('run docker-compose', () => {
       projectName: projectName
     };
 
+    const mockExec = mocked(exec);
+    mockExec.mockResolvedValue(0);
+
     await runCompose(command, args, context);
 
-    const mockExec = mocked(exec);
     const expectedArgs: string[] = [
       '-f',
       context.composeFiles[0],
@@ -197,6 +245,99 @@ describe('Main action entrypoint', () => {
     expect(output).toEqual(containerId);
 
     const calls = mockExec.mock.calls;
+    expect(calls.length).toBe(4);
+    expect(calls[0]).toEqual([
+      'docker-compose',
+      ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
+      undefined
+    ]);
+    expect(calls[1]).toEqual([
+      'docker-compose',
+      ['-f', context.composeFiles[0], '-p', projectName, 'build', serviceName],
+      undefined
+    ]);
+    expect(calls[2]).toEqual([
+      'docker-compose',
+      [
+        '-f',
+        context.composeFiles[0],
+        '-p',
+        projectName,
+        'up',
+        '--abort-on-container-exit',
+        serviceName
+      ],
+      undefined
+    ]);
+    const expectedOptions = expect.objectContaining({
+      listeners: expect.objectContaining({
+        stdout: expect.anything()
+      })
+    });
+    expect(calls[3]).toEqual([
+      'docker-compose',
+      [
+        '-f',
+        context.composeFiles[0],
+        '-p',
+        projectName,
+        'ps',
+        '-aq',
+        serviceName
+      ],
+      expectedOptions
+    ]);
+  });
+
+  test('compose exits with code 1', async () => {
+    const projectName = 'test-name';
+    const serviceName = 'test-service';
+    const context: Context = {
+      composeFiles: ['docker-compose.ci.yml'],
+      serviceName,
+      composeCommand: 'up',
+      composeArguments: ['--abort-on-container-exit'],
+      runCommand: ['ignored'],
+      build: true,
+      buildArgs: [],
+      push: false,
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
+      isPost: false,
+      projectName: projectName
+    };
+    const containerId = 'abc123';
+
+    const mockExec = mocked(exec);
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
+        return 0;
+      }
+    );
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
+        return 0;
+      }
+    );
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
+        return 1;
+      }
+    );
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
+        if (options && options.listeners && options.listeners.stdout) {
+          options.listeners.stdout(new Buffer(`${containerId}\n`));
+        }
+        return 0;
+      }
+    );
+
+    await expect(runAction(context)).rejects.toThrow(
+      new ComposeError('Error: docker-compose exited with code 1', containerId)
+    );
+
+    const calls = mockExec.mock.calls;
+    console.log(calls);
     expect(calls.length).toBe(4);
     expect(calls[0]).toEqual([
       'docker-compose',

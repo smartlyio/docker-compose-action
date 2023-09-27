@@ -17,7 +17,7 @@ export async function runCompose(
   args: string[],
   context: Context,
   execOptions?: exec.ExecOptions
-): Promise<void> {
+): Promise<number> {
   const composeArgs = [];
   for (const part of context.composeFiles) {
     composeArgs.push('-f', part);
@@ -29,7 +29,7 @@ export async function runCompose(
   for (const part of args) {
     composeArgs.push(part);
   }
-  await exec.exec('docker-compose', composeArgs, execOptions);
+  return await exec.exec('docker-compose', composeArgs, execOptions);
 }
 
 export async function getContainerId(context: Context): Promise<string | null> {
@@ -86,7 +86,13 @@ export async function runAction(context: Context): Promise<string | null> {
     }
   }
   try {
-    await runCompose(context.composeCommand, args, context);
+    const exitCode = await runCompose(context.composeCommand, args, context);
+    if (exitCode !== 0) {
+      throw new ComposeError(
+        `docker-compose exited with code ${exitCode}`,
+        null
+      );
+    }
   } catch (e) {
     const containerId = await getContainerId(context);
     throw new ComposeError(`${e}`, containerId);
