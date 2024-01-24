@@ -114,18 +114,17 @@
       ]
     },
     {
-      "depTypeList":[
+      "depTypeList": [
         "devDependencies"
       ],
-      "matchUpdateTypes":[
+      "matchUpdateTypes": [
         "patch"
       ],
-      "matchPackagePrefixes":[
+      "matchPackagePrefixes": [
         "@types"
       ],
-      "labels":[
-        "no release",
-        "patch"
+      "labels": [
+        "no release"
       ],
       "automerge": true
     }
