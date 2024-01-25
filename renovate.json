@@ -112,6 +112,21 @@
         "patch",
         "renovate-deps"
       ]
+    },
+    {
+      "depTypeList": [
+        "devDependencies"
+      ],
+      "matchUpdateTypes": [
+        "patch"
+      ],
+      "matchPackagePrefixes": [
+        "@types"
+      ],
+      "labels": [
+        "no release"
+      ],
+      "automerge": true
     }
   ],
   "github-actions": {
