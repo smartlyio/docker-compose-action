@@ -81,3 +81,4 @@ jobs:
         uses: smartlyio/github-actions@release-action-node-v1
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
+          use_yarn: "true"
