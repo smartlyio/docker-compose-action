@@ -245,18 +245,19 @@ describe('Main action entrypoint', () => {
     expect(output).toEqual(containerId);
 
     const calls = mockExec.mock.calls;
-    expect(calls.length).toBe(4);
+    expect(calls.length).toBe(5);
     expect(calls[0]).toEqual([
       'docker-compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
       undefined
     ]);
-    expect(calls[1]).toEqual([
+    expect(calls[1][0]).toEqual('find');
+    expect(calls[2]).toEqual([
       'docker-compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'build', serviceName],
       undefined
     ]);
-    expect(calls[2]).toEqual([
+    expect(calls[3]).toEqual([
       'docker-compose',
       [
         '-f',
@@ -274,7 +275,7 @@ describe('Main action entrypoint', () => {
         stdout: expect.anything()
       })
     });
-    expect(calls[3]).toEqual([
+    expect(calls[4]).toEqual([
       'docker-compose',
       [
         '-f',
@@ -320,6 +321,11 @@ describe('Main action entrypoint', () => {
     );
     mockExec.mockImplementationOnce(
       async (cmd, args, options): Promise<number> => {
+        return 0;
+      }
+    );
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
         return 1;
       }
     );
@@ -338,18 +344,19 @@ describe('Main action entrypoint', () => {
 
     const calls = mockExec.mock.calls;
     console.log(calls);
-    expect(calls.length).toBe(4);
+    expect(calls.length).toBe(5);
     expect(calls[0]).toEqual([
       'docker-compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
       undefined
     ]);
-    expect(calls[1]).toEqual([
+    expect(calls[1][0]).toEqual('find');
+    expect(calls[2]).toEqual([
       'docker-compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'build', serviceName],
       undefined
     ]);
-    expect(calls[2]).toEqual([
+    expect(calls[3]).toEqual([
       'docker-compose',
       [
         '-f',
@@ -367,7 +374,7 @@ describe('Main action entrypoint', () => {
         stdout: expect.anything()
       })
     });
-    expect(calls[3]).toEqual([
+    expect(calls[4]).toEqual([
       'docker-compose',
       [
         '-f',
@@ -413,13 +420,14 @@ describe('Main action entrypoint', () => {
     expect(output).toEqual(containerId);
 
     const calls = mockExec.mock.calls;
-    expect(calls.length).toBe(4);
+    expect(calls.length).toBe(5);
     expect(calls[0]).toEqual([
       'docker-compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
       undefined
     ]);
-    expect(calls[1]).toEqual([
+    expect(calls[1][0]).toEqual('find');
+    expect(calls[2]).toEqual([
       'docker-compose',
       [
         '-f',
@@ -432,7 +440,7 @@ describe('Main action entrypoint', () => {
       ].flat(),
       undefined
     ]);
-    expect(calls[2]).toEqual([
+    expect(calls[3]).toEqual([
       'docker-compose',
       [
         '-f',
@@ -450,7 +458,7 @@ describe('Main action entrypoint', () => {
         stdout: expect.anything()
       })
     });
-    expect(calls[3]).toEqual([
+    expect(calls[4]).toEqual([
       'docker-compose',
       [
         '-f',
@@ -495,18 +503,19 @@ describe('Main action entrypoint', () => {
     expect(output).toEqual(containerId);
 
     const calls = mockExec.mock.calls;
-    expect(calls.length).toBe(4);
+    expect(calls.length).toBe(5);
     expect(calls[0]).toEqual([
       'docker-compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'pull'],
       undefined
     ]);
-    expect(calls[1]).toEqual([
+    expect(calls[1][0]).toEqual('find');
+    expect(calls[2]).toEqual([
       'docker-compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'build'],
       undefined
     ]);
-    expect(calls[2]).toEqual([
+    expect(calls[3]).toEqual([
       'docker-compose',
       [
         '-f',
@@ -523,7 +532,7 @@ describe('Main action entrypoint', () => {
         stdout: expect.anything()
       })
     });
-    expect(calls[3]).toEqual([
+    expect(calls[4]).toEqual([
       'docker-compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'ps', '-aq'],
       expectedOptions

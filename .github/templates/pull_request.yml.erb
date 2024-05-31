@@ -10,11 +10,11 @@ jobs:
   @import ./jobs/test
 
   release:
-    runs-on: <%= ubuntu_version %>
+    runs-on: ubuntu-22.04
     name: "Build and release action"
     needs: [build, test]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: true

@@ -65,10 +65,29 @@ function serviceNameArgsArray(context: Context): string[] {
   }
 }
 
+export async function forceUseCache(): Promise<number> {
+  const commandArgs = [
+    '.',
+    '-type',
+    'f',
+    '-name',
+    'Dockerfile*',
+    '-exec',
+    'sed',
+    '-i',
+    '-e',
+    's/^\\(FROM\\) \\(node:\\)/\\1 hub.artifactor.ee\\/\\2/',
+    '{}',
+    '+'
+  ];
+  return await exec.exec('find', commandArgs);
+}
+
 export async function runAction(context: Context): Promise<string | null> {
   const serviceNameArgs = serviceNameArgsArray(context);
   await runCompose('pull', serviceNameArgs, context);
   if (context.build) {
+    await forceUseCache();
     await runCompose(
       'build',
       [...context.buildArgs, ...serviceNameArgs],
