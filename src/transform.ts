@@ -19,9 +19,9 @@ export async function transformComposeFile(
   const yqPipeline = `with(.services; (to_entries | ${transforms.join(
     ' | '
   )} | from_entries))`;
-  const command = ['--inplace', composeFilePath, yqPipeline];
+  const command = ['--inplace', yqPipeline, composeFilePath];
 
-  return await exec.exec('qa', command);
+  return await exec.exec('yq', command);
 }
 
 export async function transformDockerFiles(registry: string): Promise<number> {
