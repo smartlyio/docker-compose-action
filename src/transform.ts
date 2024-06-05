@@ -26,7 +26,7 @@ export async function transformComposeFile(
 
 export async function transformDockerFiles(registry: string): Promise<number> {
   const transforms = DOCKERHUB_PREFIXES.map(
-    image => ['-e', `s/^\\(FROM\\) \\(${image}\\)/\\1 ${registry}\\/\\2/`]
+    image => ['-e', `s#^\\(FROM\\) \\(${image}\\)#\\1 ${registry}/\\2#`]
   ).flat();
   const commandArgs = [
     '.',
