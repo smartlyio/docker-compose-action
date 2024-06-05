@@ -66,7 +66,7 @@ function serviceNameArgsArray(context: Context): string[] {
   }
 }
 
-export async function forceUseCache(context: Context): Promise<number> {
+export async function forceUseCache(context: Context): Promise<void> {
   await transformDockerFiles(context.registryCache);
   for (const part of context.composeFiles) {
     await transformComposeFile(part, context.registryCache);
