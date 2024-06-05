@@ -29,8 +29,8 @@ export async function transformDockerFiles(registry: string): Promise<number> {
     '-exec',
     'sed',
     '-i',
-    '-e'
-  ] + transforms + [
+    '-e',
+    ...transforms,
     '{}',
     '+'
   ];
