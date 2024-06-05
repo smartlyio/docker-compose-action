@@ -67,10 +67,9 @@ function serviceNameArgsArray(context: Context): string[] {
 }
 
 export async function forceUseCache(context: Context): Promise<number> {
-  const registry = 'hub.artifactor.ee';
-  await transformDockerFiles(registry);
+  await transformDockerFiles(context.registryCache);
   for (const part of context.composeFiles) {
-    await transformComposeFile(part, registry);
+    await transformComposeFile(part, context.registryCache);
   }
 }
 

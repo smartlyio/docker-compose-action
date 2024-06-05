@@ -15,6 +15,7 @@ export interface Context {
   runCommand: string[];
   build: boolean;
   buildArgs: string[];
+  registryCache: string;
   // Derived context
   push: boolean;
   postCommand: string[];
@@ -84,6 +85,7 @@ export async function getContext(): Promise<Context> {
   const push: boolean = parsePushOption(pushOption, build);
   const post: boolean = isPost();
   const serviceName: string = core.getInput('serviceName');
+  const registryCache: string = core.getInput('registry-cache');
 
   const composeCommand = core.getInput('composeCommand');
   if (composeCommand !== 'up' && composeCommand !== 'run') {
@@ -116,6 +118,7 @@ export async function getContext(): Promise<Context> {
     runCommand: parseArray(core.getInput('runCommand')),
     build,
     buildArgs: parseBuildArgs(buildArgsString),
+    registryCache,
     // Derived context
     postCommand: ['down --remove-orphans --volumes', 'rm -f'],
     projectName: createProjectName(),
@@ -131,6 +134,7 @@ export async function getContext(): Promise<Context> {
   core.saveState('runCommand', context.runCommand);
   core.saveState('build', context.build);
   core.saveState('buildArgs', buildArgsString);
+  core.saveState('registryCache', registryCache);
   core.saveState('postCommand', context.postCommand);
   core.saveState('projectName', context.projectName);
   core.saveState('push', context.push);
@@ -148,6 +152,7 @@ export async function loadState(): Promise<Context> {
     runCommand: JSON.parse(core.getState('runCommand')),
     build: toBoolean(core.getState('build')),
     buildArgs: parseBuildArgs(core.getState('buildArgs')),
+    registryCache: core.getState('registryCache'),
     postCommand: JSON.parse(core.getState('postCommand')),
     projectName: core.getState('projectName'),
     push: toBoolean(core.getState('push')),
