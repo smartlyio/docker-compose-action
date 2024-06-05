@@ -16,7 +16,7 @@ export async function transformComposeFile(
   const transforms = DOCKERHUB_PREFIXES.map(image =>
     composeImageYqTransform(image, registry)
   );
-  const yqPipeline = `with(.services; (to_entries | ${transforms.join(
+  const yqPipeline = `.services = (.services | (to_entries | ${transforms.join(
     ' | '
   )} | from_entries))`;
   const command = ['--inplace', yqPipeline, composeFilePath];
