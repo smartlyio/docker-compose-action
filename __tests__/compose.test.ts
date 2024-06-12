@@ -29,6 +29,7 @@ describe('run docker-compose', () => {
       runCommand: [],
       build: true,
       buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
@@ -67,6 +68,7 @@ describe('run docker-compose', () => {
       runCommand: [],
       build: true,
       buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
@@ -106,6 +108,7 @@ describe('run docker-compose', () => {
       runCommand: [],
       build: true,
       buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
@@ -146,6 +149,7 @@ describe('run docker-compose', () => {
       runCommand: [],
       build: true,
       buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: [command, 'rm -f'],
       isPost: false,
@@ -185,6 +189,7 @@ describe('run docker-compose', () => {
       runCommand: [],
       build: true,
       buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: [command, 'rm -f'],
       isPost: false,
@@ -225,6 +230,7 @@ describe('Main action entrypoint', () => {
       runCommand: ['ignored'],
       build: true,
       buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
@@ -245,19 +251,20 @@ describe('Main action entrypoint', () => {
     expect(output).toEqual(containerId);
 
     const calls = mockExec.mock.calls;
-    expect(calls.length).toBe(5);
-    expect(calls[0]).toEqual([
+    expect(calls.length).toBe(6);
+    expect(calls[0][0]).toEqual('find');
+    expect(calls[1][0]).toEqual('yq');
+    expect(calls[2]).toEqual([
       'docker-compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
       undefined
     ]);
-    expect(calls[1][0]).toEqual('find');
-    expect(calls[2]).toEqual([
+    expect(calls[3]).toEqual([
       'docker-compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'build', serviceName],
       undefined
     ]);
-    expect(calls[3]).toEqual([
+    expect(calls[4]).toEqual([
       'docker-compose',
       [
         '-f',
@@ -275,7 +282,7 @@ describe('Main action entrypoint', () => {
         stdout: expect.anything()
       })
     });
-    expect(calls[4]).toEqual([
+    expect(calls[5]).toEqual([
       'docker-compose',
       [
         '-f',
@@ -301,6 +308,7 @@ describe('Main action entrypoint', () => {
       runCommand: ['ignored'],
       build: true,
       buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
@@ -309,6 +317,11 @@ describe('Main action entrypoint', () => {
     const containerId = 'abc123';
 
     const mockExec = mocked(exec);
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
+        return 0;
+      }
+    );
     mockExec.mockImplementationOnce(
       async (cmd, args, options): Promise<number> => {
         return 0;
@@ -344,19 +357,20 @@ describe('Main action entrypoint', () => {
 
     const calls = mockExec.mock.calls;
     console.log(calls);
-    expect(calls.length).toBe(5);
-    expect(calls[0]).toEqual([
+    expect(calls.length).toBe(6);
+    expect(calls[0][0]).toEqual('find');
+    expect(calls[1][0]).toEqual('yq');
+    expect(calls[2]).toEqual([
       'docker-compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
       undefined
     ]);
-    expect(calls[1][0]).toEqual('find');
-    expect(calls[2]).toEqual([
+    expect(calls[3]).toEqual([
       'docker-compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'build', serviceName],
       undefined
     ]);
-    expect(calls[3]).toEqual([
+    expect(calls[4]).toEqual([
       'docker-compose',
       [
         '-f',
@@ -374,7 +388,7 @@ describe('Main action entrypoint', () => {
         stdout: expect.anything()
       })
     });
-    expect(calls[4]).toEqual([
+    expect(calls[5]).toEqual([
       'docker-compose',
       [
         '-f',
@@ -400,6 +414,7 @@ describe('Main action entrypoint', () => {
       runCommand: ['ignored'],
       build: true,
       buildArgs: ['--build-arg', 'TEST_ARG=1', '--build-arg', 'TEST_ARG_2=2'],
+      registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
@@ -420,14 +435,15 @@ describe('Main action entrypoint', () => {
     expect(output).toEqual(containerId);
 
     const calls = mockExec.mock.calls;
-    expect(calls.length).toBe(5);
-    expect(calls[0]).toEqual([
+    expect(calls.length).toBe(6);
+    expect(calls[0][0]).toEqual('find');
+    expect(calls[1][0]).toEqual('yq');
+    expect(calls[2]).toEqual([
       'docker-compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
       undefined
     ]);
-    expect(calls[1][0]).toEqual('find');
-    expect(calls[2]).toEqual([
+    expect(calls[3]).toEqual([
       'docker-compose',
       [
         '-f',
@@ -440,7 +456,7 @@ describe('Main action entrypoint', () => {
       ].flat(),
       undefined
     ]);
-    expect(calls[3]).toEqual([
+    expect(calls[4]).toEqual([
       'docker-compose',
       [
         '-f',
@@ -458,7 +474,7 @@ describe('Main action entrypoint', () => {
         stdout: expect.anything()
       })
     });
-    expect(calls[4]).toEqual([
+    expect(calls[5]).toEqual([
       'docker-compose',
       [
         '-f',
@@ -483,6 +499,7 @@ describe('Main action entrypoint', () => {
       runCommand: ['ignored'],
       build: true,
       buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
@@ -503,19 +520,20 @@ describe('Main action entrypoint', () => {
     expect(output).toEqual(containerId);
 
     const calls = mockExec.mock.calls;
-    expect(calls.length).toBe(5);
-    expect(calls[0]).toEqual([
+    expect(calls.length).toBe(6);
+    expect(calls[0][0]).toEqual('find');
+    expect(calls[1][0]).toEqual('yq');
+    expect(calls[2]).toEqual([
       'docker-compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'pull'],
       undefined
     ]);
-    expect(calls[1][0]).toEqual('find');
-    expect(calls[2]).toEqual([
+    expect(calls[3]).toEqual([
       'docker-compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'build'],
       undefined
     ]);
-    expect(calls[3]).toEqual([
+    expect(calls[4]).toEqual([
       'docker-compose',
       [
         '-f',
@@ -532,7 +550,7 @@ describe('Main action entrypoint', () => {
         stdout: expect.anything()
       })
     });
-    expect(calls[4]).toEqual([
+    expect(calls[5]).toEqual([
       'docker-compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'ps', '-aq'],
       expectedOptions
@@ -551,6 +569,7 @@ describe('Main action entrypoint', () => {
       runCommand,
       build: false,
       buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
@@ -569,7 +588,9 @@ describe('Main action entrypoint', () => {
     expect(output).toBe(null);
 
     const calls = mockExec.mock.calls;
-    expect(calls.length).toBe(3);
+    expect(calls.length).toBe(5);
+    expect(calls[0][0]).toEqual('find');
+    expect(calls[1][0]).toEqual('yq');
     const expectedArgs = [
       '-f',
       context.composeFiles[0],
@@ -581,18 +602,18 @@ describe('Main action entrypoint', () => {
       runCommand[0],
       runCommand[1]
     ];
-    expect(calls[0]).toEqual([
+    expect(calls[2]).toEqual([
       'docker-compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
       undefined
     ]);
-    expect(calls[1]).toEqual(['docker-compose', expectedArgs, undefined]);
+    expect(calls[3]).toEqual(['docker-compose', expectedArgs, undefined]);
     const expectedOptions = expect.objectContaining({
       listeners: expect.objectContaining({
         stdout: expect.anything()
       })
     });
-    expect(calls[2]).toEqual([
+    expect(calls[4]).toEqual([
       'docker-compose',
       [
         '-f',
@@ -619,6 +640,7 @@ describe('Main action entrypoint', () => {
       runCommand,
       build: false,
       buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
@@ -627,6 +649,12 @@ describe('Main action entrypoint', () => {
 
     const mockExec = mocked(exec);
     mockExec
+      .mockImplementationOnce(async (cmd, args, options): Promise<number> => {
+        return 0;
+      })
+      .mockImplementationOnce(async (cmd, args, options): Promise<number> => {
+        return 0;
+      })
       .mockImplementationOnce(async (cmd, args, options): Promise<number> => {
         return 0;
       })
@@ -658,6 +686,7 @@ describe('Post-action entrypoint', () => {
       runCommand: [],
       build: true,
       buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
       push: true,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
@@ -706,6 +735,7 @@ describe('Post-action entrypoint', () => {
       runCommand: [],
       build: true,
       buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
@@ -749,6 +779,7 @@ describe('Post-action entrypoint', () => {
       runCommand: [],
       build: true,
       buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
       push: true,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
