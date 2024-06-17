@@ -42,6 +42,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.runCleanup = exports.runAction = exports.forceUseCache = exports.getContainerId = exports.runCompose = exports.ComposeError = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const exec = __importStar(__nccwpck_require__(1514));
+const transform_1 = __nccwpck_require__(1644);
 class ComposeError extends Error {
     constructor(message, containerId) {
         super(message);
@@ -95,32 +96,21 @@ function serviceNameArgsArray(context) {
         return [];
     }
 }
-function forceUseCache() {
+function forceUseCache(context) {
     return __awaiter(this, void 0, void 0, function* () {
-        const commandArgs = [
-            '.',
-            '-type',
-            'f',
-            '-name',
-            'Dockerfile*',
-            '-exec',
-            'sed',
-            '-i',
-            '-e',
-            's/^\\(FROM\\) \\(node:\\)/\\1 hub.artifactor.ee\\/\\2/',
-            '{}',
-            '+'
-        ];
-        return yield exec.exec('find', commandArgs);
+        yield (0, transform_1.transformDockerFiles)(context.registryCache);
+        for (const part of context.composeFiles) {
+            yield (0, transform_1.transformComposeFile)(part, context.registryCache);
+        }
     });
 }
 exports.forceUseCache = forceUseCache;
 function runAction(context) {
     return __awaiter(this, void 0, void 0, function* () {
+        yield forceUseCache(context);
         const serviceNameArgs = serviceNameArgsArray(context);
         yield runCompose('pull', serviceNameArgs, context);
         if (context.build) {
-            yield forceUseCache();
             yield runCompose('build', [...context.buildArgs, ...serviceNameArgs], context);
         }
         let args = [];
@@ -283,6 +273,7 @@ function getContext() {
         const push = parsePushOption(pushOption, build);
         const post = isPost();
         const serviceName = core.getInput('serviceName');
+        const registryCache = core.getInput('registry-cache');
         const composeCommand = core.getInput('composeCommand');
         if (composeCommand !== 'up' && composeCommand !== 'run') {
             throw new Error('composeCommand not in [up|run]');
@@ -305,6 +296,7 @@ function getContext() {
             runCommand: parseArray(core.getInput('runCommand')),
             build,
             buildArgs: parseBuildArgs(buildArgsString),
+            registryCache,
             // Derived context
             postCommand: ['down --remove-orphans --volumes', 'rm -f'],
             projectName: createProjectName(),
@@ -319,6 +311,7 @@ function getContext() {
         core.saveState('runCommand', context.runCommand);
         core.saveState('build', context.build);
         core.saveState('buildArgs', buildArgsString);
+        core.saveState('registryCache', registryCache);
         core.saveState('postCommand', context.postCommand);
         core.saveState('projectName', context.projectName);
         core.saveState('push', context.push);
@@ -337,6 +330,7 @@ function loadState() {
             runCommand: JSON.parse(core.getState('runCommand')),
             build: toBoolean(core.getState('build')),
             buildArgs: parseBuildArgs(core.getState('buildArgs')),
+            registryCache: core.getState('registryCache'),
             postCommand: JSON.parse(core.getState('postCommand')),
             projectName: core.getState('projectName'),
             push: toBoolean(core.getState('push')),
@@ -420,6 +414,87 @@ if (!(0, context_1.isPost)()) {
 else {
     cleanup();
 }
+
+
+/***/ }),
+
+/***/ 1644:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.transformDockerFiles = exports.transformComposeFile = exports.composeImageYqTransform = exports.DOCKERHUB_PREFIXES = void 0;
+const exec = __importStar(__nccwpck_require__(1514));
+exports.DOCKERHUB_PREFIXES = ['node:', 'redis:', 'postgres:', 'bitnami/'];
+function composeImageYqTransform(dockerhubImageExpression, registry) {
+    return `[.[] | (select(.value.image | test("^${dockerhubImageExpression}"))) |= (. | .value.image = "${registry}/" + .value.image)]`;
+}
+exports.composeImageYqTransform = composeImageYqTransform;
+function transformComposeFile(composeFilePath, registry) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const transforms = exports.DOCKERHUB_PREFIXES.map(image => composeImageYqTransform(image, registry));
+        const yqPipeline = `.services = (.services | (to_entries | ${transforms.join(' | ')} | from_entries))`;
+        const command = ['--inplace', yqPipeline, composeFilePath];
+        return yield exec.exec('yq', command);
+    });
+}
+exports.transformComposeFile = transformComposeFile;
+function transformDockerFiles(registry) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const transforms = exports.DOCKERHUB_PREFIXES.map(image => [
+            '-e',
+            `s#^\\(FROM\\) \\(${image}\\)#\\1 ${registry}/\\2#`
+        ]).flat();
+        const commandArgs = [
+            '.',
+            '-type',
+            'f',
+            '-name',
+            'Dockerfile*',
+            '-exec',
+            'sed',
+            ...transforms,
+            '-i',
+            '{}',
+            '+'
+        ];
+        return yield exec.exec('find', commandArgs);
+    });
+}
+exports.transformDockerFiles = transformDockerFiles;
 
 
 /***/ }),
