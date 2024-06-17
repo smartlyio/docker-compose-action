@@ -212,6 +212,7 @@ describe('get input context', () => {
       composeArguments: '--abort-on-container-exit',
       runCommand: '',
       build: 'false',
+      'registry-cache': 'hub.artifactor.ee',
       push: 'on:push'
     };
     const savedState: Record<string, string> = {};
@@ -240,6 +241,7 @@ describe('get input context', () => {
       runCommand: [],
       build: false,
       buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       isPost: false,
@@ -270,6 +272,7 @@ describe('get input context', () => {
       composeArguments: '--abort-on-container-exit',
       runCommand: '',
       build: 'false',
+      'registry-cache': 'hub.artifactor.ee',
       push: 'on:push'
     };
     mocked(getInput).mockImplementation(name => {
@@ -301,6 +304,7 @@ describe('get input context', () => {
       composeArguments: '--abort-on-container-exit',
       runCommand: '',
       build: 'false',
+      'registry-cache': 'hub.artifactor.ee',
       push: 'on:push'
     };
     mocked(getInput).mockImplementation(name => {
@@ -318,6 +322,7 @@ describe('get input context', () => {
       runCommand: [],
       build: false,
       buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       projectName: projectName,
@@ -344,6 +349,7 @@ describe('get input context', () => {
       composeArguments: '--rm',
       runCommand: '',
       build: 'false',
+      'registry-cache': 'hub.artifactor.ee',
       push: 'on:push'
     };
     mocked(getInput).mockImplementation(name => {
@@ -377,6 +383,7 @@ describe('get input context', () => {
       composeArguments: '--abort-on-container-exit',
       runCommand: '',
       build: 'false',
+      'registry-cache': 'hub.artifactor.ee',
       push: 'on:push'
     };
     mocked(getInput).mockImplementation(name => {
@@ -394,6 +401,7 @@ describe('get input context', () => {
       runCommand: [],
       build: false,
       buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       projectName: projectName,
@@ -424,6 +432,7 @@ describe('parse docker build args', () => {
       runCommand: '',
       build: 'false',
       'build-args': '',
+      'registry-cache': 'hub.artifactor.ee',
       push: 'on:push'
     };
     mocked(getInput).mockImplementation(name => {
@@ -441,6 +450,7 @@ describe('parse docker build args', () => {
       runCommand: [],
       build: false,
       buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       projectName: projectName,
@@ -469,6 +479,7 @@ describe('parse docker build args', () => {
       runCommand: '',
       build: 'false',
       'build-args': 'ARG_NAME=some-value=more-stuff',
+      'registry-cache': 'hub.artifactor.ee',
       push: 'on:push'
     };
     mocked(getInput).mockImplementation(name => {
@@ -486,6 +497,7 @@ describe('parse docker build args', () => {
       runCommand: [],
       build: false,
       buildArgs: ['--build-arg', 'ARG_NAME=some-value=more-stuff'],
+      registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       projectName: projectName,
@@ -513,6 +525,7 @@ describe('parse docker build args', () => {
       runCommand: '',
       build: 'false',
       'build-args': 'ARG_NAME=some-value=more-stuff\nANOTHER_ARG=value',
+      'registry-cache': 'hub.artifactor.ee',
       push: 'on:push'
     };
     mocked(getInput).mockImplementation(name => {
@@ -535,6 +548,7 @@ describe('parse docker build args', () => {
         '--build-arg',
         'ANOTHER_ARG=value'
       ],
+      registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
       projectName: projectName,

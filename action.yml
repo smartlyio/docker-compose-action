@@ -49,6 +49,11 @@ inputs:
           ARG2=other
     required: false
 
+  registry-cache:
+    description: Domain name of a proxying cache to dockerhub
+    required: false
+    default: hub.artifactor.ee
+
 outputs:
   container_id:
     description: "The docker ID of the service container run."

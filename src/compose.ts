@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import {Context} from './context';
+import {transformDockerFiles, transformComposeFile} from './transform';
 
 export class ComposeError extends Error {
   containerId: string | null;
@@ -65,29 +66,18 @@ function serviceNameArgsArray(context: Context): string[] {
   }
 }
 
-export async function forceUseCache(): Promise<number> {
-  const commandArgs = [
-    '.',
-    '-type',
-    'f',
-    '-name',
-    'Dockerfile*',
-    '-exec',
-    'sed',
-    '-i',
-    '-e',
-    's/^\\(FROM\\) \\(node:\\)/\\1 hub.artifactor.ee\\/\\2/',
-    '{}',
-    '+'
-  ];
-  return await exec.exec('find', commandArgs);
+export async function forceUseCache(context: Context): Promise<void> {
+  await transformDockerFiles(context.registryCache);
+  for (const part of context.composeFiles) {
+    await transformComposeFile(part, context.registryCache);
+  }
 }
 
 export async function runAction(context: Context): Promise<string | null> {
+  await forceUseCache(context);
   const serviceNameArgs = serviceNameArgsArray(context);
   await runCompose('pull', serviceNameArgs, context);
   if (context.build) {
-    await forceUseCache();
     await runCompose(
       'build',
       [...context.buildArgs, ...serviceNameArgs],
