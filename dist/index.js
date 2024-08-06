@@ -63,7 +63,7 @@ function runCompose(command, args, context, execOptions) {
         for (const part of args) {
             composeArgs.push(part);
         }
-        return yield exec.exec('docker-compose', composeArgs, execOptions);
+        return yield exec.exec('docker compose', composeArgs, execOptions);
     });
 }
 exports.runCompose = runCompose;
@@ -81,7 +81,7 @@ function getContainerId(context) {
             yield runCompose('ps', ['-aq'].concat(serviceNameArgsArray(context)), context, options);
         }
         catch (e) {
-            core.warning('Error running `docker-compose ps`, not returning a container ID');
+            core.warning('Error running `docker compose ps`, not returning a container ID');
             return null;
         }
         return stdout.trim();
@@ -126,7 +126,7 @@ function runAction(context) {
         try {
             const exitCode = yield runCompose(context.composeCommand, args, context);
             if (exitCode !== 0) {
-                throw new ComposeError(`docker-compose exited with code ${exitCode}`, null);
+                throw new ComposeError(`docker compose exited with code ${exitCode}`, null);
             }
         }
         catch (e) {
@@ -146,7 +146,7 @@ function runCleanup(context) {
                 yield runCompose('push', serviceNameArgsArray(context), context);
             }
             catch (e) {
-                errors.push('ERROR: docker-compose push failed');
+                errors.push('ERROR: docker compose push failed');
                 errors.push(`${e}`);
             }
         }
@@ -155,7 +155,7 @@ function runCleanup(context) {
                 yield runCompose(command, [], context);
             }
             catch (e) {
-                errors.push(`ERROR: docker-compose ${command} failed`);
+                errors.push(`ERROR: docker compose ${command} failed`);
                 errors.push(`${e}`);
             }
         }

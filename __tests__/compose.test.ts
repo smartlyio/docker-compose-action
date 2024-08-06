@@ -17,7 +17,7 @@ afterEach(() => {
   process.env = OLD_ENV;
 });
 
-describe('run docker-compose', () => {
+describe('run docker compose', () => {
   test('basic command', async () => {
     const command = 'build';
     const projectName = 'test-name';
@@ -51,7 +51,7 @@ describe('run docker-compose', () => {
       command
     ];
     expect(mockExec).toHaveBeenCalledWith(
-      'docker-compose',
+      'docker compose',
       expectedArgs,
       undefined
     );
@@ -91,13 +91,13 @@ describe('run docker-compose', () => {
       command
     ];
     expect(mockExec).toHaveBeenCalledWith(
-      'docker-compose',
+      'docker compose',
       expectedArgs,
       undefined
     );
   });
 
-  test('with two docker-compose files', async () => {
+  test('with two docker compose files', async () => {
     const command = 'build';
     const projectName = 'test-name';
     const context: Context = {
@@ -132,7 +132,7 @@ describe('run docker-compose', () => {
       command
     ];
     expect(mockExec).toHaveBeenCalledWith(
-      'docker-compose',
+      'docker compose',
       expectedArgs,
       undefined
     );
@@ -171,7 +171,7 @@ describe('run docker-compose', () => {
       '--volumes'
     ];
     expect(mockExec).toHaveBeenCalledWith(
-      'docker-compose',
+      'docker compose',
       expectedArgs,
       undefined
     );
@@ -211,7 +211,7 @@ describe('run docker-compose', () => {
       '--volumes'
     ];
     expect(mockExec).toHaveBeenCalledWith(
-      'docker-compose',
+      'docker compose',
       expectedArgs,
       undefined
     );
@@ -255,17 +255,17 @@ describe('Main action entrypoint', () => {
     expect(calls[0][0]).toEqual('find');
     expect(calls[1][0]).toEqual('yq');
     expect(calls[2]).toEqual([
-      'docker-compose',
+      'docker compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
       undefined
     ]);
     expect(calls[3]).toEqual([
-      'docker-compose',
+      'docker compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'build', serviceName],
       undefined
     ]);
     expect(calls[4]).toEqual([
-      'docker-compose',
+      'docker compose',
       [
         '-f',
         context.composeFiles[0],
@@ -283,7 +283,7 @@ describe('Main action entrypoint', () => {
       })
     });
     expect(calls[5]).toEqual([
-      'docker-compose',
+      'docker compose',
       [
         '-f',
         context.composeFiles[0],
@@ -352,7 +352,7 @@ describe('Main action entrypoint', () => {
     );
 
     await expect(runAction(context)).rejects.toThrow(
-      new ComposeError('Error: docker-compose exited with code 1', containerId)
+      new ComposeError('Error: docker compose exited with code 1', containerId)
     );
 
     const calls = mockExec.mock.calls;
@@ -361,17 +361,17 @@ describe('Main action entrypoint', () => {
     expect(calls[0][0]).toEqual('find');
     expect(calls[1][0]).toEqual('yq');
     expect(calls[2]).toEqual([
-      'docker-compose',
+      'docker compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
       undefined
     ]);
     expect(calls[3]).toEqual([
-      'docker-compose',
+      'docker compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'build', serviceName],
       undefined
     ]);
     expect(calls[4]).toEqual([
-      'docker-compose',
+      'docker compose',
       [
         '-f',
         context.composeFiles[0],
@@ -389,7 +389,7 @@ describe('Main action entrypoint', () => {
       })
     });
     expect(calls[5]).toEqual([
-      'docker-compose',
+      'docker compose',
       [
         '-f',
         context.composeFiles[0],
@@ -439,12 +439,12 @@ describe('Main action entrypoint', () => {
     expect(calls[0][0]).toEqual('find');
     expect(calls[1][0]).toEqual('yq');
     expect(calls[2]).toEqual([
-      'docker-compose',
+      'docker compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
       undefined
     ]);
     expect(calls[3]).toEqual([
-      'docker-compose',
+      'docker compose',
       [
         '-f',
         context.composeFiles[0],
@@ -457,7 +457,7 @@ describe('Main action entrypoint', () => {
       undefined
     ]);
     expect(calls[4]).toEqual([
-      'docker-compose',
+      'docker compose',
       [
         '-f',
         context.composeFiles[0],
@@ -475,7 +475,7 @@ describe('Main action entrypoint', () => {
       })
     });
     expect(calls[5]).toEqual([
-      'docker-compose',
+      'docker compose',
       [
         '-f',
         context.composeFiles[0],
@@ -524,17 +524,17 @@ describe('Main action entrypoint', () => {
     expect(calls[0][0]).toEqual('find');
     expect(calls[1][0]).toEqual('yq');
     expect(calls[2]).toEqual([
-      'docker-compose',
+      'docker compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'pull'],
       undefined
     ]);
     expect(calls[3]).toEqual([
-      'docker-compose',
+      'docker compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'build'],
       undefined
     ]);
     expect(calls[4]).toEqual([
-      'docker-compose',
+      'docker compose',
       [
         '-f',
         context.composeFiles[0],
@@ -551,7 +551,7 @@ describe('Main action entrypoint', () => {
       })
     });
     expect(calls[5]).toEqual([
-      'docker-compose',
+      'docker compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'ps', '-aq'],
       expectedOptions
     ]);
@@ -603,18 +603,18 @@ describe('Main action entrypoint', () => {
       runCommand[1]
     ];
     expect(calls[2]).toEqual([
-      'docker-compose',
+      'docker compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
       undefined
     ]);
-    expect(calls[3]).toEqual(['docker-compose', expectedArgs, undefined]);
+    expect(calls[3]).toEqual(['docker compose', expectedArgs, undefined]);
     const expectedOptions = expect.objectContaining({
       listeners: expect.objectContaining({
         stdout: expect.anything()
       })
     });
     expect(calls[4]).toEqual([
-      'docker-compose',
+      'docker compose',
       [
         '-f',
         context.composeFiles[0],
@@ -700,12 +700,12 @@ describe('Post-action entrypoint', () => {
     const calls = mockExec.mock.calls;
     expect(calls.length).toBe(3);
     expect(calls[0]).toEqual([
-      'docker-compose',
+      'docker compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'push', serviceName],
       undefined
     ]);
     expect(calls[1]).toEqual([
-      'docker-compose',
+      'docker compose',
       [
         '-f',
         context.composeFiles[0],
@@ -718,7 +718,7 @@ describe('Post-action entrypoint', () => {
       undefined
     ]);
     expect(calls[2]).toEqual([
-      'docker-compose',
+      'docker compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'rm', '-f'],
       undefined
     ]);
@@ -749,7 +749,7 @@ describe('Post-action entrypoint', () => {
     const calls = mockExec.mock.calls;
     expect(calls.length).toBe(2);
     expect(calls[0]).toEqual([
-      'docker-compose',
+      'docker compose',
       [
         '-f',
         context.composeFiles[0],
@@ -762,7 +762,7 @@ describe('Post-action entrypoint', () => {
       undefined
     ]);
     expect(calls[1]).toEqual([
-      'docker-compose',
+      'docker compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'rm', '-f'],
       undefined
     ]);
@@ -801,12 +801,12 @@ describe('Post-action entrypoint', () => {
     const calls = mockExec.mock.calls;
     expect(calls.length).toBe(3);
     expect(calls[0]).toEqual([
-      'docker-compose',
+      'docker compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'push', serviceName],
       undefined
     ]);
     expect(calls[1]).toEqual([
-      'docker-compose',
+      'docker compose',
       [
         '-f',
         context.composeFiles[0],
@@ -819,7 +819,7 @@ describe('Post-action entrypoint', () => {
       undefined
     ]);
     expect(calls[2]).toEqual([
-      'docker-compose',
+      'docker compose',
       ['-f', context.composeFiles[0], '-p', projectName, 'rm', '-f'],
       undefined
     ]);
