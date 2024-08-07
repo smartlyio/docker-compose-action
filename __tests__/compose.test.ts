@@ -42,7 +42,7 @@ describe('run docker-compose', () => {
     await runCompose(command, [], context);
 
     const calls = mockExec.mock.calls;
-    expect(calls.length).toBe(1);
+    expect(calls.length).toBe(2);
     const expectedArgs: string[] = [
       '-f',
       context.composeFiles[0],
