@@ -13,6 +13,33 @@ export class ComposeError extends Error {
   }
 }
 
+class ComposeCommand {
+  private composeCommand = 'docker-compose';
+  private singletonCalled = false;
+
+  /**
+   * Checks docker-compose availability, using docker compose as a fallback.
+   *
+   * @returns {Promise<string>} 'docker-compose' or 'docker compose'
+   */
+  async get(): Promise<string> {
+    if (!this.singletonCalled) {
+      this.singletonCalled = true;
+      try {
+        await exec.exec('docker-compose', ['--version']);
+      } catch (error) {
+        console.warn(
+          'docker-compose not available, falling back to docker compose'
+        );
+        this.composeCommand = 'docker compose';
+      }
+    }
+    return this.composeCommand;
+  }
+}
+
+const composeCommand = new ComposeCommand();
+
 export async function runCompose(
   command: string,
   args: string[],
@@ -30,7 +57,8 @@ export async function runCompose(
   for (const part of args) {
     composeArgs.push(part);
   }
-  return await exec.exec('docker-compose', composeArgs, execOptions);
+  const dockerCompose = await composeCommand.get();
+  return await exec.exec(dockerCompose, composeArgs, execOptions);
 }
 
 export async function getContainerId(context: Context): Promise<string | null> {
