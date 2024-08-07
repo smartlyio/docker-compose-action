@@ -1,5 +1,11 @@
 import {Context} from '../src/context';
-import {runCompose, runAction, runCleanup, ComposeError} from '../src/compose';
+import {
+  runCompose,
+  runAction,
+  runCleanup,
+  ComposeError,
+  composeCommand
+} from '../src/compose';
 import {mocked} from 'jest-mock';
 import {exec} from '@actions/exec';
 
@@ -11,10 +17,59 @@ const OLD_ENV = process.env;
 beforeEach(() => {
   process.env = {...OLD_ENV};
   mocked(exec).mockReset();
+  composeCommand.init(); // In most tests we are not interested in the fallback logic
 });
 
 afterEach(() => {
   process.env = OLD_ENV;
+});
+
+describe('fall back to docker compose', () => {
+  test('basic command', async () => {
+    composeCommand.reset(); // Here we are interested in the fallback logic
+    const command = 'build';
+    const projectName = 'test-name';
+    const context: Context = {
+      composeFiles: ['docker-compose.ci.yml'],
+      serviceName: 'test',
+      composeCommand: 'up',
+      composeArguments: ['--abort-on-container-exit'],
+      runCommand: [],
+      build: true,
+      buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
+      push: false,
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
+      isPost: false,
+      projectName: projectName
+    };
+
+    const mockExec = mocked(exec);
+    mockExec.mockRejectedValueOnce(new Error('docker-compose not found'));
+    mockExec.mockResolvedValue(0);
+
+    await runCompose(command, [], context);
+
+    const calls = mockExec.mock.calls;
+    expect(calls.length).toBe(2);
+
+    const expectedArgs: string[] = [
+      '-f',
+      context.composeFiles[0],
+      '-p',
+      projectName,
+      command
+    ];
+    expect(mockExec).toHaveBeenNthCalledWith(1, 'docker-compose', [
+      '--version'
+    ]);
+    expect(mockExec).toHaveBeenNthCalledWith(
+      2,
+      'docker compose',
+      expectedArgs,
+      undefined
+    );
+  });
 });
 
 describe('run docker-compose', () => {
@@ -42,7 +97,7 @@ describe('run docker-compose', () => {
     await runCompose(command, [], context);
 
     const calls = mockExec.mock.calls;
-    expect(calls.length).toBe(2);
+    expect(calls.length).toBe(1);
     const expectedArgs: string[] = [
       '-f',
       context.composeFiles[0],
