@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
-import { Context } from './context';
+import {Context} from './context';
 
 export class ComposeError extends Error {
   containerId: string | null;
