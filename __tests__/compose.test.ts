@@ -1,7 +1,7 @@
-import {Context} from '../src/context';
-import {runCompose, runAction, runCleanup, ComposeError} from '../src/compose';
-import {mocked} from 'jest-mock';
-import {exec} from '@actions/exec';
+import { Context } from '../src/context';
+import { runCompose, runAction, runCleanup, ComposeError, composeCommand } from '../src/compose';
+import { mocked } from 'jest-mock';
+import { exec } from '@actions/exec';
 
 jest.mock('@actions/exec', () => ({
   exec: jest.fn()
@@ -9,8 +9,9 @@ jest.mock('@actions/exec', () => ({
 
 const OLD_ENV = process.env;
 beforeEach(() => {
-  process.env = {...OLD_ENV};
+  process.env = { ...OLD_ENV };
   mocked(exec).mockReset();
+  composeCommand.init(); // In most tests we are not interested in testing the docker-compose/docker compose fallback logic
 });
 
 afterEach(() => {
