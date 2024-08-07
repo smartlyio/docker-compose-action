@@ -17,7 +17,7 @@ const OLD_ENV = process.env;
 beforeEach(() => {
   process.env = {...OLD_ENV};
   mocked(exec).mockReset();
-  composeCommand.init(); // In most tests we are not interested in the fallback logic
+  composeCommand.init(); // In most tests we are not interested in testing the docker-compose/docker compose fallback logic
 });
 
 afterEach(() => {
