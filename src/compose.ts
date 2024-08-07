@@ -19,7 +19,7 @@ class ComposeCommand {
   private composeCommand = 'docker-compose';
 
   /**
-   * Checks docker-compose availability, using docker compose as a fallback.
+   * Checks docker-compose availability, using docker compose as fallback.
    *
    * @returns {Promise<string>} 'docker-compose' or 'docker compose'
    */
