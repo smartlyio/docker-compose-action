@@ -1,46 +1,46 @@
 name: docker-compose-action
-description: Run docker compose and enforce cleanup after the job finished
+description: Run docker-compose and enforce cleanup after the job finished
 author: Smartly.io
 inputs:
   composeFile:
-    description: 'The path to the docker compose file to use, realtive to the workspace.'
-    default: 'docker-compose.yml'
+    description: "The path to the docker-compose file to use, realtive to the workspace."
+    default: "docker-compose.yml"
     required: false
 
   serviceName:
-    description: 'The name of the service to use defined in the compose file.  If not given, will run all services.'
+    description: "The name of the service to use defined in the compose file.  If not given, will run all services."
     # Empty value will be interpreted as "null"/not-given
-    default: ''
+    default: ""
     required: false
 
   composeCommand:
-    description: 'One of `up` or `run` as the main compose command to execute.'
-    default: 'up'
+    description: "One of `up` or `run` as the main compose command to execute."
+    default: "up"
     required: false
 
   composeArguments:
-    description: 'Option flags passed to the compose command.'
-    default: '--abort-on-container-exit'
+    description: "Option flags passed to the compose command."
+    default: "--abort-on-container-exit"
     required: false
 
   runCommand:
     description: "Command to run in the container when composeCommand is 'run'; ignored otherwise."
-    default: ''
+    default: ""
     required: false
 
   build:
-    description: 'Explicitly build the service image before running. Implies pull before build.'
-    default: 'false'
+    description: "Explicitly build the service image before running. Implies pull before build."
+    default: "false"
     required: false
 
   push:
     description: "When to push the built image to the registry. 'on:push' means when the trigger event it a push to the branch. Otherwise true/false.  Only runs if 'build' is true."
-    default: 'on:push'
+    default: "on:push"
     required: false
 
   build-args:
     description: |
-      Build arguments to pass to docker compose build, as a newline separated list.
+      Build arguments to pass to docker-compose build, as a newline separated list.
       Requires "build" option to be set when used.
       Values may not contain commas, as a naive string split is used to parse them.
       e.g:
@@ -56,7 +56,7 @@ inputs:
 
 outputs:
   container_id:
-    description: 'The docker ID of the service container run.'
+    description: "The docker ID of the service container run."
 
 runs:
   using: 'node20'

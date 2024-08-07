@@ -30,7 +30,7 @@ export async function runCompose(
   for (const part of args) {
     composeArgs.push(part);
   }
-  return await exec.exec('docker compose', composeArgs, execOptions);
+  return await exec.exec('docker-compose', composeArgs, execOptions);
 }
 
 export async function getContainerId(context: Context): Promise<string | null> {
@@ -51,7 +51,7 @@ export async function getContainerId(context: Context): Promise<string | null> {
     );
   } catch (e) {
     core.warning(
-      'Error running `docker compose ps`, not returning a container ID'
+      'Error running `docker-compose ps`, not returning a container ID'
     );
     return null;
   }
@@ -98,7 +98,7 @@ export async function runAction(context: Context): Promise<string | null> {
     const exitCode = await runCompose(context.composeCommand, args, context);
     if (exitCode !== 0) {
       throw new ComposeError(
-        `docker compose exited with code ${exitCode}`,
+        `docker-compose exited with code ${exitCode}`,
         null
       );
     }
@@ -117,7 +117,7 @@ export async function runCleanup(context: Context): Promise<void> {
     try {
       await runCompose('push', serviceNameArgsArray(context), context);
     } catch (e) {
-      errors.push('ERROR: docker compose push failed');
+      errors.push('ERROR: docker-compose push failed');
       errors.push(`${e}`);
     }
   }
@@ -126,7 +126,7 @@ export async function runCleanup(context: Context): Promise<void> {
     try {
       await runCompose(command, [], context);
     } catch (e) {
-      errors.push(`ERROR: docker compose ${command} failed`);
+      errors.push(`ERROR: docker-compose ${command} failed`);
       errors.push(`${e}`);
     }
   }
