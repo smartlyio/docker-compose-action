@@ -39,7 +39,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.runCleanup = exports.runAction = exports.getContainerId = exports.runCompose = exports.ComposeError = void 0;
+exports.runCleanup = exports.runAction = exports.getContainerId = exports.runCompose = exports.composeCommand = exports.ComposeError = void 0;
 const core = __importStar(__nccwpck_require__(186));
 const exec = __importStar(__nccwpck_require__(514));
 class ComposeError extends Error {
@@ -49,6 +49,42 @@ class ComposeError extends Error {
     }
 }
 exports.ComposeError = ComposeError;
+class ComposeCommand {
+    constructor() {
+        // Not using a constructor as the singleton implementation due to await, constructors can't be async.
+        this.initialised = false;
+        this.composeCommand = 'docker-compose';
+    }
+    /**
+     * Checks docker-compose availability, using docker compose as fallback.
+     *
+     * @returns {Promise<string>} 'docker-compose' or 'docker compose'
+     */
+    get() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.initialised) {
+                this.initialised = true;
+                try {
+                    yield exec.exec('docker-compose', ['--version']);
+                }
+                catch (error) {
+                    console.warn('docker-compose not available, falling back to docker compose');
+                    this.composeCommand = 'docker compose';
+                }
+            }
+            return this.composeCommand;
+        });
+    }
+    init() {
+        this.initialised = true;
+        this.composeCommand = 'docker-compose';
+    }
+    reset() {
+        this.initialised = false;
+        this.composeCommand = 'docker-compose';
+    }
+}
+exports.composeCommand = new ComposeCommand();
 function runCompose(command, args, context, execOptions) {
     return __awaiter(this, void 0, void 0, function* () {
         const composeArgs = [];
@@ -62,7 +98,8 @@ function runCompose(command, args, context, execOptions) {
         for (const part of args) {
             composeArgs.push(part);
         }
-        return yield exec.exec('docker-compose', composeArgs, execOptions);
+        const dockerCompose = yield exports.composeCommand.get();
+        return yield exec.exec(dockerCompose, composeArgs, execOptions);
     });
 }
 exports.runCompose = runCompose;

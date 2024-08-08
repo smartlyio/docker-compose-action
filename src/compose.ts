@@ -11,6 +11,43 @@ export class ComposeError extends Error {
     this.containerId = containerId;
   }
 }
+class ComposeCommand {
+  // Not using a constructor as the singleton implementation due to await, constructors can't be async.
+  private initialised = false;
+  private composeCommand = 'docker-compose';
+
+  /**
+   * Checks docker-compose availability, using docker compose as fallback.
+   *
+   * @returns {Promise<string>} 'docker-compose' or 'docker compose'
+   */
+  async get(): Promise<string> {
+    if (!this.initialised) {
+      this.initialised = true;
+      try {
+        await exec.exec('docker-compose', ['--version']);
+      } catch (error) {
+        console.warn(
+          'docker-compose not available, falling back to docker compose'
+        );
+        this.composeCommand = 'docker compose';
+      }
+    }
+    return this.composeCommand;
+  }
+
+  init(): void {
+    this.initialised = true;
+    this.composeCommand = 'docker-compose';
+  }
+
+  reset(): void {
+    this.initialised = false;
+    this.composeCommand = 'docker-compose';
+  }
+}
+
+export const composeCommand = new ComposeCommand();
 
 export async function runCompose(
   command: string,
@@ -29,7 +66,8 @@ export async function runCompose(
   for (const part of args) {
     composeArgs.push(part);
   }
-  return await exec.exec('docker-compose', composeArgs, execOptions);
+  const dockerCompose = await composeCommand.get();
+  return await exec.exec(dockerCompose, composeArgs, execOptions);
 }
 
 export async function getContainerId(context: Context): Promise<string | null> {
