@@ -8,20 +8,3 @@ jobs:
   build:
     name: Build
     uses: ./.github/workflows/build.yml
-
-  release:
-    runs-on: ubuntu-22.04
-    name: 'Build and release action'
-    needs: [build]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: true
-      - name: Configure git
-        uses: smartlyio/github-actions@git-init-userinfo-v1
-      - name: Release flow
-        uses: smartlyio/github-actions@release-action-node-v1
-        with:
-          token: '${{ secrets.GITHUB_TOKEN }}'
-          dry_run: true

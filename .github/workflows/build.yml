@@ -54,3 +54,21 @@ jobs:
           build-args: |
             MY_TEST_ARG=some-value
             OTHER_ARG=2
+
+  release:
+    runs-on: ubuntu-22.04
+    name: 'Build and release action'
+    needs: [build, test]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Configure git
+        uses: smartlyio/github-actions@git-init-userinfo-v1
+      - name: Release flow
+        uses: smartlyio/github-actions@release-action-node-v1
+        with:
+          token: '${{ secrets.GITHUB_TOKEN }}'
+          dry_run: ${{ github.event_name == 'pull_request' }}
+          use_yarn: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
