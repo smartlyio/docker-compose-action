@@ -63,7 +63,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Test with docker-compose
         uses: smartlyio/docker-compose-action@v1
