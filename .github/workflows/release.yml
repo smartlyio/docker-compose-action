@@ -1,0 +1,10 @@
+name: Release the action
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    name: Build
+    uses: ./.github/workflows/build.yml

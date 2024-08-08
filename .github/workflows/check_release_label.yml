@@ -3,18 +3,17 @@ name: Check Labels
 on:
   pull_request:
     branches:
-    - master
+      - master
     types:
-    - opened
-    - labeled
-    - unlabeled
-    - synchronize
+      - opened
+      - labeled
+      - unlabeled
+      - synchronize
 
 jobs:
   check_labels:
     runs-on: ubuntu-22.04
     steps:
-    - uses: smartlyio/check-versioning-action@v5
-      with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+      - uses: smartlyio/check-versioning-action@v5
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
