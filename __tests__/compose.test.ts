@@ -598,7 +598,10 @@ describe('Main action entrypoint', () => {
     );
 
     await expect(runAction(context)).rejects.toThrow(
-      new ComposeError('docker-compose pull failed and not allowed to build', null)
+      new ComposeError(
+        'docker-compose pull failed and not allowed to build',
+        null
+      )
     );
 
     const calls = mockExec.mock.calls;
