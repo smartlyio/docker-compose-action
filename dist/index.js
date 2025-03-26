@@ -146,8 +146,10 @@ function runAction(context) {
     return __awaiter(this, void 0, void 0, function* () {
         yield forceUseCache(context);
         const serviceNameArgs = serviceNameArgsArray(context);
-        const pullCode = yield runCompose('pull', serviceNameArgs, context);
-        if (pullCode !== 0) {
+        try {
+            yield runCompose('pull', serviceNameArgs, context);
+        }
+        catch (e) {
             if (!context.build) {
                 core.error('Error running docker-compose pull and the action is not configured to build the image.');
                 throw new ComposeError(`docker-compose pull failed and not allowed to build`, null);
