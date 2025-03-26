@@ -146,7 +146,14 @@ function runAction(context) {
     return __awaiter(this, void 0, void 0, function* () {
         yield forceUseCache(context);
         const serviceNameArgs = serviceNameArgsArray(context);
-        yield runCompose('pull', serviceNameArgs, context);
+        const pullCode = yield runCompose('pull', serviceNameArgs, context);
+        if (pullCode !== 0) {
+            if (!context.build) {
+                core.error('Error running docker-compose pull and the action is not configured to build the image.');
+                throw new ComposeError(`docker-compose pull failed and not allowed to build`, null);
+            }
+            core.warning('Error running docker-compose pull. The image will be rebuilt.');
+        }
         if (context.build) {
             yield runCompose('build', [...context.buildArgs, ...serviceNameArgs], context);
         }
