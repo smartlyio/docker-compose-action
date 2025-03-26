@@ -115,7 +115,22 @@ export async function forceUseCache(context: Context): Promise<void> {
 export async function runAction(context: Context): Promise<string | null> {
   await forceUseCache(context);
   const serviceNameArgs = serviceNameArgsArray(context);
-  await runCompose('pull', serviceNameArgs, context);
+  try {
+    await runCompose('pull', serviceNameArgs, context);
+  } catch (e) {
+    if (!context.build) {
+      core.error(
+        'Error running docker-compose pull and the action is not configured to build the image.'
+      );
+      throw new ComposeError(
+        `docker-compose pull failed and not allowed to build`,
+        null
+      );
+    }
+    core.warning(
+      'Error running docker-compose pull. The image will be rebuilt.'
+    );
+  }
   if (context.build) {
     await runCompose(
       'build',

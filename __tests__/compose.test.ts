@@ -458,6 +458,269 @@ describe('Main action entrypoint', () => {
     ]);
   });
 
+  test('builds container if pull fails', async () => {
+    const projectName = 'test-name';
+    const serviceName = 'test-service';
+    const context: Context = {
+      composeFiles: ['docker-compose.ci.yml'],
+      serviceName,
+      composeCommand: 'up',
+      composeArguments: ['--abort-on-container-exit'],
+      runCommand: ['ignored'],
+      build: true,
+      buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
+      push: false,
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
+      isPost: false,
+      projectName: projectName
+    };
+    const containerId = 'abc123';
+
+    const mockExec = mocked(exec);
+    mockExec.mockImplementation(async (cmd, args, options): Promise<number> => {
+      if (options && options.listeners && options.listeners.stdout) {
+        options.listeners.stdout(new Buffer(`${containerId}\n`));
+      }
+      return 0;
+    });
+
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
+        return 0;
+      }
+    );
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
+        return 0;
+      }
+    );
+    mockExec.mockImplementationOnce(
+      // docker-compose pull
+      async (cmd, args, options): Promise<number> => {
+        throw new Error();
+      }
+    );
+
+    const output = await runAction(context);
+
+    expect(output).toEqual(containerId);
+
+    const calls = mockExec.mock.calls;
+    expect(calls.length).toBe(6);
+    expect(calls[0][0]).toEqual('find');
+    expect(calls[1][0]).toEqual('yq');
+    expect(calls[2]).toEqual([
+      'docker-compose',
+      ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
+      undefined
+    ]);
+    expect(calls[3]).toEqual([
+      'docker-compose',
+      ['-f', context.composeFiles[0], '-p', projectName, 'build', serviceName],
+      undefined
+    ]);
+    expect(calls[4]).toEqual([
+      'docker-compose',
+      [
+        '-f',
+        context.composeFiles[0],
+        '-p',
+        projectName,
+        'up',
+        '--abort-on-container-exit',
+        serviceName
+      ],
+      undefined
+    ]);
+    const expectedOptions = expect.objectContaining({
+      listeners: expect.objectContaining({
+        stdout: expect.anything()
+      })
+    });
+    expect(calls[5]).toEqual([
+      'docker-compose',
+      [
+        '-f',
+        context.composeFiles[0],
+        '-p',
+        projectName,
+        'ps',
+        '-aq',
+        serviceName
+      ],
+      expectedOptions
+    ]);
+  });
+
+  test('errors if pull fails and build not allowed', async () => {
+    const projectName = 'test-name';
+    const serviceName = 'test-service';
+    const context: Context = {
+      composeFiles: ['docker-compose.ci.yml'],
+      serviceName,
+      composeCommand: 'up',
+      composeArguments: ['--abort-on-container-exit'],
+      runCommand: ['ignored'],
+      build: false,
+      buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
+      push: false,
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
+      isPost: false,
+      projectName: projectName
+    };
+    const containerId = 'abc123';
+
+    const mockExec = mocked(exec);
+    mockExec.mockImplementation(async (cmd, args, options): Promise<number> => {
+      if (options && options.listeners && options.listeners.stdout) {
+        options.listeners.stdout(new Buffer(`${containerId}\n`));
+      }
+      return 0;
+    });
+
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
+        return 0;
+      }
+    );
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
+        return 0;
+      }
+    );
+    mockExec.mockImplementationOnce(
+      // docker-compose pull
+      async (cmd, args, options): Promise<number> => {
+        throw new Error();
+      }
+    );
+
+    await expect(runAction(context)).rejects.toThrow(
+      new ComposeError(
+        'docker-compose pull failed and not allowed to build',
+        null
+      )
+    );
+
+    const calls = mockExec.mock.calls;
+    expect(calls.length).toBe(3);
+    expect(calls[0][0]).toEqual('find');
+    expect(calls[1][0]).toEqual('yq');
+    expect(calls[2]).toEqual([
+      'docker-compose',
+      ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
+      undefined
+    ]);
+  });
+
+  test('compose exits with code 1', async () => {
+    const projectName = 'test-name';
+    const serviceName = 'test-service';
+    const context: Context = {
+      composeFiles: ['docker-compose.ci.yml'],
+      serviceName,
+      composeCommand: 'up',
+      composeArguments: ['--abort-on-container-exit'],
+      runCommand: ['ignored'],
+      build: true,
+      buildArgs: [],
+      registryCache: 'hub.artifactor.ee',
+      push: false,
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
+      isPost: false,
+      projectName: projectName
+    };
+    const containerId = 'abc123';
+
+    const mockExec = mocked(exec);
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
+        return 0;
+      }
+    );
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
+        return 0;
+      }
+    );
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
+        return 0;
+      }
+    );
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
+        return 0;
+      }
+    );
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
+        return 1;
+      }
+    );
+    mockExec.mockImplementationOnce(
+      async (cmd, args, options): Promise<number> => {
+        if (options && options.listeners && options.listeners.stdout) {
+          options.listeners.stdout(new Buffer(`${containerId}\n`));
+        }
+        return 0;
+      }
+    );
+
+    await expect(runAction(context)).rejects.toThrow(
+      new ComposeError('Error: docker-compose exited with code 1', containerId)
+    );
+
+    const calls = mockExec.mock.calls;
+    console.log(calls);
+    expect(calls.length).toBe(6);
+    expect(calls[0][0]).toEqual('find');
+    expect(calls[1][0]).toEqual('yq');
+    expect(calls[2]).toEqual([
+      'docker-compose',
+      ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
+      undefined
+    ]);
+    expect(calls[3]).toEqual([
+      'docker-compose',
+      ['-f', context.composeFiles[0], '-p', projectName, 'build', serviceName],
+      undefined
+    ]);
+    expect(calls[4]).toEqual([
+      'docker-compose',
+      [
+        '-f',
+        context.composeFiles[0],
+        '-p',
+        projectName,
+        'up',
+        '--abort-on-container-exit',
+        serviceName
+      ],
+      undefined
+    ]);
+    const expectedOptions = expect.objectContaining({
+      listeners: expect.objectContaining({
+        stdout: expect.anything()
+      })
+    });
+    expect(calls[5]).toEqual([
+      'docker-compose',
+      [
+        '-f',
+        context.composeFiles[0],
+        '-p',
+        projectName,
+        'ps',
+        '-aq',
+        serviceName
+      ],
+      expectedOptions
+    ]);
+  });
+
   test('run action with build and build args', async () => {
     const projectName = 'test-name';
     const serviceName = 'test-service';
