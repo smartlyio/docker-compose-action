@@ -498,7 +498,7 @@ describe('Main action entrypoint', () => {
     mockExec.mockImplementationOnce(
       // docker-compose pull
       async (cmd, args, options): Promise<number> => {
-        return 1;
+        throw new Error();
       }
     );
 
@@ -593,7 +593,7 @@ describe('Main action entrypoint', () => {
     mockExec.mockImplementationOnce(
       // docker-compose pull
       async (cmd, args, options): Promise<number> => {
-        return 1;
+        throw new Error();
       }
     );
 
