@@ -55,8 +55,8 @@ inputs:
       Each secret is mounted during build but not included in the final image.
       e.g:
         build-secrets: |
-          SECRET1=${{ secrets.SECRET1_VALUE }}
-          SECRET2=${{ secrets.SECRET2_VALUE }}
+          SECRET1=VALUE
+          SECRET2=VALUE
 
     required: false
 
