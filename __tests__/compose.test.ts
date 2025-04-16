@@ -37,6 +37,7 @@ describe('fall back to docker compose', () => {
       runCommand: [],
       build: true,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -84,6 +85,7 @@ describe('run docker-compose', () => {
       runCommand: [],
       build: true,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -123,6 +125,7 @@ describe('run docker-compose', () => {
       runCommand: [],
       build: true,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -163,6 +166,7 @@ describe('run docker-compose', () => {
       runCommand: [],
       build: true,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -204,6 +208,7 @@ describe('run docker-compose', () => {
       runCommand: [],
       build: true,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: [command, 'rm -f'],
@@ -244,6 +249,7 @@ describe('run docker-compose', () => {
       runCommand: [],
       build: true,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: [command, 'rm -f'],
@@ -285,6 +291,7 @@ describe('Main action entrypoint', () => {
       runCommand: ['ignored'],
       build: true,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -363,6 +370,7 @@ describe('Main action entrypoint', () => {
       runCommand: ['ignored'],
       build: true,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -469,6 +477,7 @@ describe('Main action entrypoint', () => {
       runCommand: ['ignored'],
       build: true,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -564,6 +573,7 @@ describe('Main action entrypoint', () => {
       runCommand: ['ignored'],
       build: false,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -626,6 +636,7 @@ describe('Main action entrypoint', () => {
       runCommand: ['ignored'],
       build: true,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -732,6 +743,7 @@ describe('Main action entrypoint', () => {
       runCommand: ['ignored'],
       build: true,
       buildArgs: ['--build-arg', 'TEST_ARG=1', '--build-arg', 'TEST_ARG_2=2'],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -817,6 +829,7 @@ describe('Main action entrypoint', () => {
       runCommand: ['ignored'],
       build: true,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -887,6 +900,7 @@ describe('Main action entrypoint', () => {
       runCommand,
       build: false,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -958,6 +972,7 @@ describe('Main action entrypoint', () => {
       runCommand,
       build: false,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -990,6 +1005,102 @@ describe('Main action entrypoint', () => {
       new ComposeError('Error: Container failed', 'container-id')
     );
   });
+
+  test('run action with build and build secrets', async () => {
+    const projectName = 'test-name';
+    const serviceName = 'test-service';
+    const runCommand = ['bash', './run-my-script.sh'];
+    const context: Context = {
+      composeFiles: ['docker-compose.ci.yml'],
+      serviceName,
+      composeCommand: 'up',
+      composeArguments: ['--abort-on-container-exit'],
+      runCommand: ['ignored'],
+      build: true,
+      buildArgs: ['--build-arg', 'ARG_NAME=some-value'],
+      buildSecrets: ['--secret', 'id=SECRET1', '--secret', 'id=SECRET2'],
+      registryCache: 'hub.artifactor.ee',
+      push: false,
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
+      isPost: false,
+      projectName: projectName
+    };
+    const containerId = 'abc123';
+
+    const mockExec = mocked(exec);
+    mockExec.mockImplementation(async (cmd, args, options): Promise<number> => {
+      if (options && options.listeners && options.listeners.stdout) {
+        options.listeners.stdout(new Buffer(`${containerId}\n`));
+      }
+      return 0;
+    });
+
+    const output = await runAction(context);
+
+    expect(output).toEqual(containerId);
+
+    const calls = mockExec.mock.calls;
+    expect(calls.length).toBe(6);
+    expect(calls[0][0]).toEqual('find');
+    expect(calls[1][0]).toEqual('yq');
+    expect(calls[2]).toEqual([
+      'docker-compose',
+      ['-f', context.composeFiles[0], '-p', projectName, 'pull', serviceName],
+      undefined
+    ]);
+
+    expect(calls[3]).toEqual([
+      'docker-compose',
+      [
+        '-f',
+        context.composeFiles[0],
+        '-p',
+        projectName,
+        'build',
+        '--build-arg',
+        'ARG_NAME=some-value',
+        '--secret',
+        'id=SECRET1',
+        '--secret',
+        'id=SECRET2',
+        serviceName
+      ],
+      undefined
+    ]);
+
+    expect(calls[4]).toEqual([
+      'docker-compose',
+      [
+        '-f',
+        context.composeFiles[0],
+        '-p',
+        projectName,
+        'up',
+        '--abort-on-container-exit',
+        serviceName
+      ],
+      undefined
+    ]);
+
+    const expectedOptions = expect.objectContaining({
+      listeners: expect.objectContaining({
+        stdout: expect.anything()
+      })
+    });
+    expect(calls[5]).toEqual([
+      'docker-compose',
+      [
+        '-f',
+        context.composeFiles[0],
+        '-p',
+        projectName,
+        'ps',
+        '-aq',
+        serviceName
+      ],
+      expectedOptions
+    ]);
+  });
 });
 
 describe('Post-action entrypoint', () => {
@@ -1004,6 +1115,7 @@ describe('Post-action entrypoint', () => {
       runCommand: [],
       build: true,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: true,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -1053,6 +1165,7 @@ describe('Post-action entrypoint', () => {
       runCommand: [],
       build: true,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -1097,6 +1210,7 @@ describe('Post-action entrypoint', () => {
       runCommand: [],
       build: true,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: true,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],

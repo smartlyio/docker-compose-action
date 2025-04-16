@@ -6,7 +6,8 @@ import {
   toBoolean,
   parseArray,
   getContext,
-  loadState
+  loadState,
+  parseBuildSecrets
 } from '../src/context';
 import {mocked} from 'jest-mock';
 import {
@@ -241,6 +242,7 @@ describe('get input context', () => {
       runCommand: [],
       build: false,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -322,6 +324,7 @@ describe('get input context', () => {
       runCommand: [],
       build: false,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -401,6 +404,7 @@ describe('get input context', () => {
       runCommand: [],
       build: false,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -450,6 +454,7 @@ describe('parse docker build args', () => {
       runCommand: [],
       build: false,
       buildArgs: [],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -497,6 +502,7 @@ describe('parse docker build args', () => {
       runCommand: [],
       build: false,
       buildArgs: ['--build-arg', 'ARG_NAME=some-value=more-stuff'],
+      buildSecrets: [],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -548,6 +554,78 @@ describe('parse docker build args', () => {
         '--build-arg',
         'ANOTHER_ARG=value'
       ],
+      buildSecrets: [],
+      registryCache: 'hub.artifactor.ee',
+      push: false,
+      postCommand: ['down --remove-orphans --volumes', 'rm -f'],
+      projectName: projectName,
+      isPost: false
+    };
+    expect(await getContext()).toEqual(expected);
+  });
+});
+
+describe('parse docker build secrets', () => {
+  test('test empty build secrets', async () => {
+    const buildSecrets = parseBuildSecrets('');
+    expect(buildSecrets).toEqual([]);
+  });
+
+  test('test single build secret', async () => {
+    const buildSecrets = parseBuildSecrets('SECRET_ID=secret_value');
+    expect(buildSecrets).toEqual(['--secret', 'id=SECRET_ID']);
+  });
+
+  test('test multiple build secrets', async () => {
+    const buildSecrets = parseBuildSecrets('SECRET1=value1\nSECRET2=value2');
+    expect(buildSecrets).toEqual([
+      '--secret',
+      'id=SECRET1',
+      '--secret',
+      'id=SECRET2'
+    ]);
+  });
+
+  test('test context with build secrets', async () => {
+    const org = 'smartlyio';
+    const repo = 'docker-compose-action';
+    const job = 'test-job';
+    const runId = 5;
+    const uuid = '5cbc67f0-1b89-4402-90a1-6c40d19bd745';
+    process.env['GITHUB_REPOSITORY'] = `${org}/${repo}`;
+    process.env['GITHUB_JOB'] = job;
+    process.env['GITHUB_RUN_ID'] = `${runId}`;
+    mocked(uuidv4).mockReturnValue(uuid);
+    const projectName = `${org}-${repo}-${job}-${runId}-${uuid}`;
+
+    const inputs: Record<string, string> = {
+      composeFile: 'docker-compose.ci.yml',
+      serviceName: 'test',
+      composeCommand: 'up',
+      composeArguments: '--abort-on-container-exit',
+      runCommand: '',
+      build: 'true',
+      'build-args': 'ARG_NAME=some-value',
+      'build-secrets': 'SECRET1=value1\nSECRET2=value2',
+      'registry-cache': 'hub.artifactor.ee',
+      push: 'on:push'
+    };
+    mocked(getInput).mockImplementation(name => {
+      return inputs[name];
+    });
+    mocked(getMultilineInput).mockImplementation(name => {
+      return inputs[name].split('\n');
+    });
+
+    const expected: Context = {
+      composeFiles: [inputs.composeFile],
+      serviceName: 'test',
+      composeCommand: 'up',
+      composeArguments: ['--abort-on-container-exit'],
+      runCommand: [],
+      build: true,
+      buildArgs: ['--build-arg', 'ARG_NAME=some-value'],
+      buildSecrets: ['--secret', 'id=SECRET1', '--secret', 'id=SECRET2'],
       registryCache: 'hub.artifactor.ee',
       push: false,
       postCommand: ['down --remove-orphans --volumes', 'rm -f'],

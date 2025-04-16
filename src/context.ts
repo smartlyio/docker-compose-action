@@ -15,6 +15,7 @@ export interface Context {
   runCommand: string[];
   build: boolean;
   buildArgs: string[];
+  buildSecrets: string[];
   registryCache: string;
   // Derived context
   push: boolean;
@@ -78,9 +79,25 @@ export function parseBuildArgs(buildArgsString: string): string[] {
   return buildArgs.flat();
 }
 
+export function parseBuildSecrets(buildSecretsString: string): string[] {
+  if (!buildSecretsString) {
+    return [];
+  }
+  const secretValues = buildSecretsString.split('\n').filter(s => s.trim());
+  const buildSecrets = [];
+  for (const secret of secretValues) {
+    const parts = secret.split('=');
+    const secretId = parts[0];
+    buildSecrets.push(['--secret', `id=${secretId}`]);
+  }
+
+  return buildSecrets.flat();
+}
+
 export async function getContext(): Promise<Context> {
   const build: boolean = toBoolean(core.getInput('build'));
   const buildArgsString: string = core.getInput('build-args');
+  const buildSecretsString: string = core.getInput('build-secrets');
   const pushOption: string = core.getInput('push');
   const push: boolean = parsePushOption(pushOption, build);
   const post: boolean = isPost();
@@ -118,6 +135,7 @@ export async function getContext(): Promise<Context> {
     runCommand: parseArray(core.getInput('runCommand')),
     build,
     buildArgs: parseBuildArgs(buildArgsString),
+    buildSecrets: parseBuildSecrets(buildSecretsString),
     registryCache,
     // Derived context
     postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -134,6 +152,7 @@ export async function getContext(): Promise<Context> {
   core.saveState('runCommand', context.runCommand);
   core.saveState('build', context.build);
   core.saveState('buildArgs', buildArgsString);
+  core.saveState('buildSecrets', buildSecretsString);
   core.saveState('registryCache', registryCache);
   core.saveState('postCommand', context.postCommand);
   core.saveState('projectName', context.projectName);
@@ -152,6 +171,7 @@ export async function loadState(): Promise<Context> {
     runCommand: JSON.parse(core.getState('runCommand')),
     build: toBoolean(core.getState('build')),
     buildArgs: parseBuildArgs(core.getState('buildArgs')),
+    buildSecrets: parseBuildSecrets(core.getState('buildSecrets')),
     registryCache: core.getState('registryCache'),
     postCommand: JSON.parse(core.getState('postCommand')),
     projectName: core.getState('projectName'),

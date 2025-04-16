@@ -134,7 +134,7 @@ export async function runAction(context: Context): Promise<string | null> {
   if (context.build) {
     await runCompose(
       'build',
-      [...context.buildArgs, ...serviceNameArgs],
+      [...context.buildArgs, ...context.buildSecrets, ...serviceNameArgs],
       context
     );
   }

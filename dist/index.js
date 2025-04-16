@@ -157,7 +157,7 @@ function runAction(context) {
             core.warning('Error running docker-compose pull. The image will be rebuilt.');
         }
         if (context.build) {
-            yield runCompose('build', [...context.buildArgs, ...serviceNameArgs], context);
+            yield runCompose('build', [...context.buildArgs, ...context.buildSecrets, ...serviceNameArgs], context);
         }
         let args = [];
         for (const part of context.composeArguments) {
@@ -253,7 +253,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.loadState = exports.getContext = exports.parseBuildArgs = exports.parsePushOption = exports.createProjectName = exports.parseArray = exports.toBoolean = exports.isPost = void 0;
+exports.loadState = exports.getContext = exports.parseBuildSecrets = exports.parseBuildArgs = exports.parsePushOption = exports.createProjectName = exports.parseArray = exports.toBoolean = exports.isPost = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const uuid_1 = __nccwpck_require__(5840);
 function isPost() {
@@ -311,10 +311,25 @@ function parseBuildArgs(buildArgsString) {
     return buildArgs.flat();
 }
 exports.parseBuildArgs = parseBuildArgs;
+function parseBuildSecrets(buildSecretsString) {
+    if (!buildSecretsString) {
+        return [];
+    }
+    const secretValues = buildSecretsString.split('\n').filter(s => s.trim());
+    const buildSecrets = [];
+    for (const secret of secretValues) {
+        const parts = secret.split('=');
+        const secretId = parts[0];
+        buildSecrets.push(['--secret', `id=${secretId}`]);
+    }
+    return buildSecrets.flat();
+}
+exports.parseBuildSecrets = parseBuildSecrets;
 function getContext() {
     return __awaiter(this, void 0, void 0, function* () {
         const build = toBoolean(core.getInput('build'));
         const buildArgsString = core.getInput('build-args');
+        const buildSecretsString = core.getInput('build-secrets');
         const pushOption = core.getInput('push');
         const push = parsePushOption(pushOption, build);
         const post = isPost();
@@ -342,6 +357,7 @@ function getContext() {
             runCommand: parseArray(core.getInput('runCommand')),
             build,
             buildArgs: parseBuildArgs(buildArgsString),
+            buildSecrets: parseBuildSecrets(buildSecretsString),
             registryCache,
             // Derived context
             postCommand: ['down --remove-orphans --volumes', 'rm -f'],
@@ -357,6 +373,7 @@ function getContext() {
         core.saveState('runCommand', context.runCommand);
         core.saveState('build', context.build);
         core.saveState('buildArgs', buildArgsString);
+        core.saveState('buildSecrets', buildSecretsString);
         core.saveState('registryCache', registryCache);
         core.saveState('postCommand', context.postCommand);
         core.saveState('projectName', context.projectName);
@@ -376,6 +393,7 @@ function loadState() {
             runCommand: JSON.parse(core.getState('runCommand')),
             build: toBoolean(core.getState('build')),
             buildArgs: parseBuildArgs(core.getState('buildArgs')),
+            buildSecrets: parseBuildSecrets(core.getState('buildSecrets')),
             registryCache: core.getState('registryCache'),
             postCommand: JSON.parse(core.getState('postCommand')),
             projectName: core.getState('projectName'),

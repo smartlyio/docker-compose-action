@@ -49,6 +49,17 @@ inputs:
           ARG2=other
     required: false
 
+  build-secrets:
+    description: |
+      Secrets to pass to docker compose build, as a newline separated list.
+      Each secret is mounted during build but not included in the final image.
+      e.g:
+        build-secrets: |
+          SECRET1=${{ secrets.SECRET1_VALUE }}
+          SECRET2=${{ secrets.SECRET2_VALUE }}
+
+    required: false
+
   registry-cache:
     description: Domain name of a proxying cache to dockerhub
     required: false
