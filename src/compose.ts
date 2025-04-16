@@ -57,6 +57,8 @@ export async function runCompose(
   context: Context,
   execOptions?: exec.ExecOptions
 ): Promise<number> {
+  process.env.DOCKER_BUILDKIT = '1';
+  process.env.COMPOSE_DOCKER_CLI_BUILD = '1';
   const composeArgs = [];
   for (const part of context.composeFiles) {
     composeArgs.push('-f', part);
@@ -68,6 +70,12 @@ export async function runCompose(
   for (const part of args) {
     composeArgs.push(part);
   }
+  const options: exec.ExecOptions = execOptions || {};
+  options.env = {
+    ...process.env,
+    DOCKER_BUILDKIT: '1',
+    COMPOSE_DOCKER_CLI_BUILD: '1'
+  };
   const dockerCompose = await composeCommand.get();
   return await exec.exec(dockerCompose, composeArgs, execOptions);
 }
