@@ -6,9 +6,9 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Set Node.js version
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 24.x
       - name: 'Install'
@@ -31,9 +31,9 @@ jobs:
   test:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Set Node.js version
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 24.x
       - name: 'Build action for test'
@@ -60,14 +60,14 @@ jobs:
     name: 'Build and release action'
     needs: [build, test]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
           persist-credentials: true
       - name: Configure git
-        uses: smartlyio/github-actions@git-init-userinfo-v1
+        uses: smartlyio/github-actions@4ef49912877febb62867891d42a1205190fb2ab0 # git-init-userinfo-v1
       - name: Release flow
-        uses: smartlyio/github-actions@release-action-node-v1
+        uses: smartlyio/github-actions@ac9cc7e148b55d6c88641ea387ab6d2860ba5c3e # release-action-node-v1
         with:
           token: '${{ secrets.GITHUB_TOKEN }}'
           dry_run: ${{ github.event_name == 'pull_request' }}
