@@ -71,4 +71,4 @@ jobs:
         with:
           token: '${{ secrets.GITHUB_TOKEN }}'
           dry_run: ${{ github.event_name == 'pull_request' }}
-          use_yarn: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+          use_yarn: true
