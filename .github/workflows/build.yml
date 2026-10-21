@@ -65,9 +65,9 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
       - name: Configure git
-        uses: smartlyio/github-actions@4ef49912877febb62867891d42a1205190fb2ab0 # git-init-userinfo-v1
+        uses: smartlyio/github-actions-private@4ef49912877febb62867891d42a1205190fb2ab0 # git-init-userinfo-v1
       - name: Release flow
-        uses: smartlyio/github-actions@ac9cc7e148b55d6c88641ea387ab6d2860ba5c3e # release-action-node-v1
+        uses: smartlyio/github-actions-private@ac9cc7e148b55d6c88641ea387ab6d2860ba5c3e # release-action-node-v1
         with:
           token: '${{ secrets.GITHUB_TOKEN }}'
           dry_run: ${{ github.event_name == 'pull_request' }}
